@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: dspace
+      POSTGRES_USER: dspace
+      POSTGRES_PASSWORD: dspace
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - dspacenet
+
+  # Solr Search
+  solr:
+    image: solr:8.11
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr
+    command:
+      - solr-precreate
+      - dspace
+    networks:
+      - dspacenet
+
+  # DSpace 7 REST API
+  dspace-backend:
+    image: dspace/dspace:dspace-7.6
+    depends_on:
+      - db
+      - solr
+    environment:
+      - dspace.dir=/dspace
+      - dspace.server.url=http://localhost:8080/server
+      - dspace.ui.url=http://localhost:4000
+      - dspace.name=Biblioteca Digital
+      - db.url=jdbc:postgresql://db:5432/dspace
+      - db.username=dspace
+      - db.password=dspace
+      - solr.server=http://solr:8983/solr
+    ports:
+      - "8080:8080"
+    volumes:
+      - dspace_data:/dspace
+    networks:
+      - dspacenet
+    command: >
+      bash -c "
+        sleep 30 &&
+        /dspace/bin/dspace database migrate ignored &&
+        catalina.sh run
+      "
+
+  # DSpace 7 Angular UI  
+  dspace-frontend:
+    image: dspace/dspace-angular:dspace-7.6
+    depends_on:
+      - dspace-backend
+    environment:
+      - DSPACE_UI_SSL=false
+      - DSPACE_UI_HOST=0.0.0.0
+      - DSPACE_UI_PORT=4000
+      - DSPACE_UI_NAMESPACE=/
+      - DSPACE_REST_SSL=false
+      - DSPACE_REST_HOST=localhost
+      - DSPACE_REST_PORT=8080
+      - DSPACE_REST_NAMESPACE=/server
+    ports:
+      - "4000:4000"
+    networks:
+      - dspacenet
+
+networks:
+  dspacenet:
+
+volumes:
+  postgres_data:
+  solr_data:
+  dspace_data:

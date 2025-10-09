@@ -1,0 +1,194 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║            ✅ PANEL ACTUALIZADO - URLs con IP de WSL                 ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+FECHA: 9 Octubre 2025 - 16:15
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📝 CAMBIOS APLICADOS                                                ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Actualicé todos los enlaces del panel para usar la IP de WSL:
+
+
+1. BOTÓN KOHA:
+   ✅ Nueva URL: http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1
+
+   Al hacer clic en "Koha" se abrirá directamente esta URL
+
+
+2. BOTÓN DSPACE:
+   ✅ Nueva URL: http://172.27.72.64:4000
+
+
+3. ENLACES EN EL FOOTER:
+   ✅ DSpace:  http://172.27.72.64:4000
+   ✅ API:     http://172.27.72.64:8090/server/api
+   ✅ Solr:    http://172.27.72.64:8983/solr
+
+
+4. MODAL DE LOGIN:
+   ✅ Actualizado con el enlace correcto a Koha
+
+
+5. PÁGINA estado-idioma.html:
+   ✅ Todos los enlaces actualizados con IP de WSL
+   ✅ Agregado enlace a Koha en la tabla
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🌐 ACCEDER AL PANEL                                                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Desde tu navegador EN WINDOWS, accede a:
+
+  http://172.27.72.64:8081
+
+Verás el panel con todos los botones actualizados.
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🔘 BOTONES DEL PANEL                                                ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+En el header del panel verás tres botones:
+
+  [Inicio] [Koha] [DSpace]
+
+Al hacer clic en cada uno:
+
+  • INICIO → Muestra la página principal del panel
+
+  • KOHA → Abre en nueva ventana:
+    http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1
+
+  • DSPACE → Abre en nueva ventana:
+    http://172.27.72.64:4000
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📋 FUNCIONALIDADES DEL PANEL                                        ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+El panel tiene varias secciones:
+
+1. HEADER:
+   • Botones de acceso rápido a Inicio, Koha y DSpace
+
+2. ESTADO DEL SISTEMA:
+   • Muestra el estado de DSpace
+   • Indica que está en español
+
+3. TARJETAS DE FUNCIONALIDADES:
+   • Catálogo OPAC
+   • Interfaz Staff
+   • Circulación
+   • Reportes
+
+4. SECCIÓN DE INTEGRACIÓN:
+   • Información sobre DSpace
+   • Información sobre Koha
+   • Botones de acceso directo
+
+5. FOOTER:
+   • Enlaces rápidos a DSpace, API y Solr
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  ✅ VERIFICACIÓN                                                     ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Para verificar que todo funciona:
+
+1. Abre en Windows:
+   http://172.27.72.64:8081
+
+2. Haz clic en el botón "Koha"
+
+3. Debe abrirse una nueva ventana con la URL:
+   http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1
+
+4. Haz clic en el botón "DSpace"
+
+5. Debe abrirse una nueva ventana con:
+   http://172.27.72.64:4000
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🔄 SI LA IP DE WSL CAMBIA                                           ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Cuando la IP de WSL cambie, necesitarás actualizar el panel.
+
+OPCIÓN 1 - Script automático (recomendado):
+
+  ./actualizar-ip-wsl.sh
+
+  Este script actualiza docker-compose.yml pero NO actualiza
+  los archivos HTML del panel.
+
+
+OPCIÓN 2 - Actualizar manualmente:
+
+  1. Obtén la nueva IP:
+     hostname -I | awk '{print $1}'
+
+  2. Edita estos archivos y reemplaza 172.27.72.64 con la nueva IP:
+     • koha/web/index.html
+     • koha/web/estado-idioma.html
+
+  3. Guarda los cambios
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📱 URLS ACTUALES (IP WSL: 172.27.72.64)                             ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  Panel:      http://172.27.72.64:8081
+  DSpace:     http://172.27.72.64:4000
+  Koha:       http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1
+  API:        http://172.27.72.64:8090/server/api
+  Solr:       http://172.27.72.64:8983/solr
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📚 ARCHIVOS MODIFICADOS                                             ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  ✅ koha/web/index.html
+     - Función loadKoha() actualizada
+     - Función loadDSpace() actualizada
+     - Enlaces del footer actualizados
+     - Modal de login actualizado
+
+  ✅ koha/web/estado-idioma.html
+     - Tabla de URLs actualizada
+     - Enlaces actualizados
+     - Botón de Koha agregado
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  ✅ RESUMEN                                                          ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  ✅ Panel actualizado con IP de WSL
+  ✅ Botón Koha redirige a la URL correcta
+  ✅ Todos los enlaces actualizados
+  ✅ Funcionando desde Windows
+
+  🌐 Accede al panel: http://172.27.72.64:8081
+
+  🎉 ¡Ya puedes usar el panel con todas las URLs correctas!
+
+
+═══════════════════════════════════════════════════════════════════════
+
+  Panel:         http://172.27.72.64:8081
+  Koha:          http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1
+  DSpace:        http://172.27.72.64:4000
+  Estado:        ✅ ACTUALIZADO
+
+═══════════════════════════════════════════════════════════════════════

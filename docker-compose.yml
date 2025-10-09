@@ -1,0 +1,196 @@
+version: '3.8'
+
+networks:
+  dspacenet:
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+
+services:
+  # DSpace backend webapp container
+  dspace:
+    container_name: dspace
+    environment:
+      # Configuración básica de DSpace
+      dspace__P__dir: /dspace
+      dspace__P__name: 'Biblioteca Digital'
+
+      # Base de datos
+      db__P__url: 'jdbc:postgresql://dspacedb:5432/dspace'
+      db__P__username: 'dspace'
+      db__P__password: 'dspace'
+
+      # Solr
+      solr__P__server: 'http://dspacesolr:8983/solr'
+
+      # Configuración de red
+      proxies__P__trusted__P__ipranges: '172.23.0, 172.27.0'
+
+      # URLs (WSL - accesible desde Windows)
+      dspace__P__server__P__url: 'http://172.27.72.64:8090/server'
+      dspace__P__ui__P__url: 'http://172.27.72.64:4000'
+
+      # Configuración de idioma español
+      default__P__locale: 'es'
+      webui__P__supported__P__locales: 'es'
+      LANG: 'es_ES.UTF-8'
+      LANGUAGE: 'es_ES:es'
+      LC_ALL: 'es_ES.UTF-8'
+
+      # Logging
+      LOGGING_CONFIG: '/dspace/config/log4j2-container.xml'
+
+      # Email desactivado para desarrollo
+      mail__P__server__P__disabled: 'true'
+
+      # Memoria Java
+      JAVA_OPTS: '-Xmx2048m -Xms1024m -Duser.language=es -Duser.country=ES'
+
+    image: dspace/dspace:dspace-7_x
+    depends_on:
+      - dspacedb
+      - dspacesolr
+    networks:
+      - dspacenet
+    ports:
+      - "8090:8080"
+      - "8000:8000"
+    volumes:
+      - dspace_data:/dspace/assetstore
+      - dspace_solr_data:/dspace/solr
+
+  # PostgreSQL database container
+  dspacedb:
+    container_name: dspacedb
+    image: dspace/dspace-postgres-pgcrypto:dspace-7_x
+    environment:
+      POSTGRES_DB: dspace
+      POSTGRES_USER: dspace  
+      POSTGRES_PASSWORD: dspace
+      PGDATA: /pgdata
+    networks:
+      - dspacenet
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/pgdata
+
+  # Solr container
+  dspacesolr:
+    container_name: dspacesolr
+    image: dspace/dspace-solr:dspace-7_x
+    networks:
+      - dspacenet
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr/data
+
+  # DSpace Angular UI
+  dspace-angular:
+    container_name: dspace-angular
+    image: dspace/dspace-angular:dspace-7_x
+    depends_on:
+      - dspace
+    environment:
+      DSPACE_UI_SSL: 'false'
+      DSPACE_UI_HOST: '0.0.0.0'
+      DSPACE_UI_PORT: '4000'
+      DSPACE_UI_NAMESPACE: '/'
+      DSPACE_REST_SSL: 'false'
+      DSPACE_REST_HOST: '172.27.72.64'
+      DSPACE_REST_PORT: '8090'
+      DSPACE_REST_NAMESPACE: '/server'
+      # Configuración de idioma español
+      LANG: 'es_ES.UTF-8'
+      LANGUAGE: 'es_ES:es'
+      LC_ALL: 'es_ES.UTF-8'
+    networks:
+      - dspacenet
+    ports:
+      - "4000:4000"
+
+  # === KOHA SERVICES ===
+  
+  # MariaDB database for Koha
+  koha-db:
+    container_name: koha-mariadb
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: koha_root_password
+      MYSQL_DATABASE: koha_biblioteca
+      MYSQL_USER: koha
+      MYSQL_PASSWORD: koha_password
+    volumes:
+      - koha_db_data:/var/lib/mysql
+      - ./koha/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - dspacenet
+    ports:
+      - "3307:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  # Memcached for Koha
+  koha-memcached:
+    container_name: koha-memcached
+    image: memcached:alpine
+    restart: unless-stopped
+    command: memcached -m 128
+    networks:
+      - dspacenet
+    ports:
+      - "11212:11211"
+
+  # Koha Web Application (Sistema de gestión bibliotecaria)
+  koha-web:
+    container_name: koha-web
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      - koha-db
+    volumes:
+      - ./koha/web:/usr/share/nginx/html:ro
+      - ./koha/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - dspacenet
+    ports:
+      - "8081:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+      - LANG=es_ES.UTF-8
+      - LANGUAGE=es_ES:es
+      - LC_ALL=es_ES.UTF-8
+
+  # Koha API Proxy (Placeholder para futuras integraciones)
+  koha-api:
+    container_name: koha-api
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      - koha-db
+    volumes:
+      - ./koha/api:/usr/share/nginx/html:ro
+    networks:
+      - dspacenet
+    ports:
+      - "8089:80"
+    environment:
+      - LANG=es_ES.UTF-8
+      - LANGUAGE=es_ES:es
+      - LC_ALL=es_ES.UTF-8
+    command: >
+      sh -c "
+        echo 'Koha API Proxy iniciado' &&
+        nginx -g 'daemon off;'
+      "
+
+volumes:
+  pgdata:
+  solr_data:
+  dspace_data:
+  dspace_solr_data:
+  koha_db_data:
+  koha_data:
+  koha_config:

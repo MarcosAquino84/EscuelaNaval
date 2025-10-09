@@ -1,0 +1,79 @@
+version: '3.8'
+
+networks:
+  dspacenet:
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+
+services:
+  # PostgreSQL database container (inherited from main compose)
+  dspacedb:
+    container_name: dspacedb
+    image: dspace/dspace-postgres-pgcrypto:dspace-7_x
+    environment:
+      POSTGRES_DB: dspace
+      POSTGRES_USER: dspace  
+      POSTGRES_PASSWORD: dspace
+      PGDATA: /pgdata
+    networks:
+      - dspacenet
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/pgdata
+
+  # Solr container (inherited from main compose)
+  dspacesolr:
+    container_name: dspacesolr
+    image: dspace/dspace-solr:dspace-7_x
+    networks:
+      - dspacenet
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr/data
+
+  # DSpace CLI container para comandos de administración
+  dspace-cli:
+    container_name: dspace-cli
+    environment:
+      # Configuración básica de DSpace
+      dspace__P__dir: /dspace
+      dspace__P__name: 'Biblioteca Digital'
+      
+      # Base de datos
+      db__P__url: 'jdbc:postgresql://dspacedb:5432/dspace'
+      db__P__username: 'dspace'
+      db__P__password: 'dspace'
+      
+      # Solr
+      solr__P__server: 'http://dspacesolr:8983/solr'
+      
+      # Configuración de red
+      proxies__P__trusted__P__ipranges: '172.23.0'
+      
+      # URLs
+      dspace__P__server__P__url: 'http://localhost:8080/server'
+      dspace__P__ui__P__url: 'http://localhost:4000'
+      
+      # Email desactivado para desarrollo
+      mail__P__server__P__disabled: 'true'
+
+    image: dspace/dspace:dspace-7_x
+    depends_on:
+      - dspacedb
+      - dspacesolr
+    networks:
+      - dspacenet
+    volumes:
+      - dspace_data:/dspace/assetstore
+      - dspace_solr_data:/dspace/solr
+    entrypoint:
+      - /dspace/bin/dspace
+
+volumes:
+  pgdata:
+  solr_data:
+  dspace_data:
+  dspace_solr_data:

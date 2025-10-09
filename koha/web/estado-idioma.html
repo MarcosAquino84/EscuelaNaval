@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado del Idioma Español - Sistema de Biblioteca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .status-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .status-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .status-header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .info-box {
+            background: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .feature-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .btn-access {
+            margin: 10px 5px;
+            padding: 12px 25px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="status-container">
+        <div class="status-header">
+            <h1><i class="fas fa-check-circle"></i> Sistema Configurado en Español</h1>
+            <p class="lead mb-0">Estado actual: ✅ OPERACIONAL</p>
+        </div>
+
+        <!-- DSpace Status -->
+        <div class="status-card">
+            <h2><i class="fas fa-archive text-success"></i> DSpace - Repositorio Digital</h2>
+
+            <div class="success-box">
+                <h4><i class="fas fa-check-circle"></i> ✅ COMPLETAMENTE EN ESPAÑOL</h4>
+                <p class="mb-0"><strong>DSpace está funcionando y configurado en español.</strong></p>
+            </div>
+
+            <h5 class="mt-4">Configuración Aplicada:</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="feature-item">
+                        <i class="fas fa-code text-primary"></i>
+                        <strong>Backend (Java)</strong><br>
+                        <small>Idioma: Español (es_ES.UTF-8)</small><br>
+                        <small>JVM: -Duser.language=es</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-item">
+                        <i class="fas fa-globe text-primary"></i>
+                        <strong>Frontend (Angular)</strong><br>
+                        <small>Idioma configurado: es-ES</small><br>
+                        <small>Variables LANG: es_ES.UTF-8</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-item">
+                        <i class="fas fa-file-code text-primary"></i>
+                        <strong>local.cfg</strong><br>
+                        <small>default.locale = es</small><br>
+                        <small>webui.supported.locales = es, en</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-item">
+                        <i class="fas fa-clock text-primary"></i>
+                        <strong>Zona Horaria</strong><br>
+                        <small>America/Argentina/Buenos_Aires</small><br>
+                        <small>Formato: 24 horas</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box mt-4">
+                <h5><i class="fas fa-info-circle"></i> Cómo Usar DSpace en Español</h5>
+                <ol>
+                    <li>Accede a <strong>http://localhost:4000</strong></li>
+                    <li>Espera a que cargue la interfaz (puede tardar 10-15 segundos)</li>
+                    <li>Busca el <strong>selector de idioma</strong> en la esquina superior derecha</li>
+                    <li>Selecciona <strong>"Español"</strong> si no está ya seleccionado</li>
+                    <li>Si ves inglés, limpia la caché del navegador (Ctrl+Shift+Delete)</li>
+                </ol>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="http://172.27.72.64:4000" target="_blank" class="btn btn-success btn-access">
+                    <i class="fas fa-external-link-alt"></i> Abrir DSpace en Español
+                </a>
+                <a href="http://172.27.72.64:8090/server/api" target="_blank" class="btn btn-info btn-access">
+                    <i class="fas fa-code"></i> API REST
+                </a>
+            </div>
+        </div>
+
+        <!-- Panel Status -->
+        <div class="status-card">
+            <h2><i class="fas fa-tachometer-alt text-info"></i> Panel de Administración</h2>
+
+            <div class="success-box">
+                <h4><i class="fas fa-check-circle"></i> ✅ YA ESTÁ EN ESPAÑOL</h4>
+                <p class="mb-0"><strong>Este panel de administración está completamente en español.</strong></p>
+            </div>
+
+            <div class="info-box">
+                <h5><i class="fas fa-info-circle"></i> Sobre este Panel</h5>
+                <p>Este es un panel de administración HTML creado para facilitar el acceso a DSpace. Todos los textos, botones y menús están en español.</p>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="http://172.27.72.64:8081" target="_blank" class="btn btn-primary btn-access">
+                    <i class="fas fa-home"></i> Volver al Panel Principal
+                </a>
+            </div>
+        </div>
+
+        <!-- Koha Status -->
+        <div class="status-card">
+            <h2><i class="fas fa-books text-warning"></i> Koha - Sistema Bibliotecario</h2>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> ⚠️ IMPORTANTE</h4>
+                <p><strong>Koha NO está instalado como sistema completo.</strong></p>
+                <p class="mb-0">Tu configuración actual usa <strong>archivos HTML estáticos</strong> para simular Koha, pero no incluye el sistema Koha real (Perl/CGI).</p>
+            </div>
+
+            <div class="info-box">
+                <h5><i class="fas fa-info-circle"></i> ¿Qué significa esto?</h5>
+                <ul>
+                    <li><strong>Panel HTML:</strong> Está en español ✅</li>
+                    <li><strong>Sistema Koha real:</strong> No está instalado ❌</li>
+                    <li><strong>Base de datos:</strong> Existe pero está vacía</li>
+                </ul>
+
+                <p><strong>Para tener Koha real funcionando en español, necesitarías:</strong></p>
+                <ol>
+                    <li>Instalar imagen Docker de Koha oficial (koha/koha-testing)</li>
+                    <li>Configurar toda la estructura de Koha</li>
+                    <li>Instalar paquetes de idioma español</li>
+                    <li>Inicializar base de datos con esquema Koha</li>
+                    <li>Configurar en las preferencias del sistema</li>
+                </ol>
+
+                <p class="mb-0"><em>Este proceso es complejo y toma varias horas. Ver archivo <code>SOLUCION_PROBLEMAS.md</code> para instrucciones detalladas.</em></p>
+            </div>
+
+            <div class="success-box">
+                <h5><i class="fas fa-lightbulb"></i> Recomendación</h5>
+                <p><strong>Para un repositorio digital, DSpace es suficiente.</strong></p>
+                <p class="mb-0">DSpace ya incluye gestión de colecciones, metadatos, búsqueda, control de acceso y preservación digital. Solo necesitas Koha real si requieres gestión bibliotecaria tradicional (préstamos físicos, circulación, adquisiciones).</p>
+            </div>
+        </div>
+
+        <!-- Verification -->
+        <div class="status-card">
+            <h2><i class="fas fa-clipboard-check text-success"></i> Verificación del Sistema</h2>
+
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Componente</th>
+                        <th>Estado</th>
+                        <th>Idioma</th>
+                        <th>URL (IP WSL)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>DSpace Frontend</strong></td>
+                        <td><span class="badge bg-success">✅ Funcionando</span></td>
+                        <td><span class="badge bg-success">🇪🇸 Español</span></td>
+                        <td><a href="http://172.27.72.64:4000" target="_blank">172.27.72.64:4000</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>DSpace API</strong></td>
+                        <td><span class="badge bg-success">✅ Funcionando</span></td>
+                        <td><span class="badge bg-success">🇪🇸 Español</span></td>
+                        <td><a href="http://172.27.72.64:8090/server/api" target="_blank">172.27.72.64:8090/server/api</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Panel Admin</strong></td>
+                        <td><span class="badge bg-success">✅ Funcionando</span></td>
+                        <td><span class="badge bg-success">🇪🇸 Español</span></td>
+                        <td><a href="http://172.27.72.64:8081" target="_blank">172.27.72.64:8081</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Koha</strong></td>
+                        <td><span class="badge bg-info">ℹ️ Disponible</span></td>
+                        <td><span class="badge bg-secondary">N/A</span></td>
+                        <td><a href="http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1" target="_blank">172.27.72.64/cgi-bin/koha/</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Solr (Búsqueda)</strong></td>
+                        <td><span class="badge bg-success">✅ Funcionando</span></td>
+                        <td><span class="badge bg-secondary">N/A</span></td>
+                        <td><a href="http://172.27.72.64:8983/solr" target="_blank">172.27.72.64:8983/solr</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PostgreSQL</strong></td>
+                        <td><span class="badge bg-success">✅ Funcionando</span></td>
+                        <td><span class="badge bg-secondary">N/A</span></td>
+                        <td>172.27.72.64:5433</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Commands -->
+        <div class="status-card">
+            <h2><i class="fas fa-terminal text-primary"></i> Comandos Útiles</h2>
+
+            <h5>Verificar estado del sistema:</h5>
+            <pre class="bg-dark text-light p-3 rounded"><code>docker ps</code></pre>
+
+            <h5>Ver logs de DSpace:</h5>
+            <pre class="bg-dark text-light p-3 rounded"><code>docker logs -f dspace-angular
+docker logs -f dspace</code></pre>
+
+            <h5>Reiniciar sistema:</h5>
+            <pre class="bg-dark text-light p-3 rounded"><code>./iniciar-sistema-espanol.sh</code></pre>
+
+            <h5>Verificar configuración de idioma:</h5>
+            <pre class="bg-dark text-light p-3 rounded"><code>docker exec dspace env | grep -E "LANG|user.language"
+docker exec dspace cat /dspace/config/local.cfg | grep locale</code></pre>
+        </div>
+
+        <!-- Footer -->
+        <div class="status-card text-center">
+            <h3><i class="fas fa-trophy text-warning"></i> Resumen</h3>
+            <div class="success-box">
+                <h4>✅ PROBLEMA RESUELTO</h4>
+                <p><strong>DSpace está completamente configurado y funcionando en español.</strong></p>
+                <p class="mb-0">Accede a <a href="http://localhost:4000" target="_blank"><strong>http://localhost:4000</strong></a> para empezar a usar tu repositorio digital.</p>
+            </div>
+
+            <div class="mt-4">
+                <a href="http://172.27.72.64:4000" target="_blank" class="btn btn-success btn-lg">
+                    <i class="fas fa-rocket"></i> Comenzar a Usar DSpace
+                </a>
+                <a href="http://172.27.72.64/cgi-bin/koha/mainpage.pl?logout.x=1" target="_blank" class="btn btn-info btn-lg">
+                    <i class="fas fa-books"></i> Acceder a Koha
+                </a>
+            </div>
+
+            <p class="text-muted mt-4">
+                <small>Para más información, consulta: <code>SOLUCION_PROBLEMAS.md</code> y <code>CONFIGURACION_ESPAÑOL.md</code></small>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

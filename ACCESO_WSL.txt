@@ -1,0 +1,271 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║          🪟 DSPACE EN WSL - ACCESO DESDE WINDOWS                     ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Fecha: 9 Octubre 2025 - 15:30
+Estado: ✅ CONFIGURADO PARA WSL
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  ⚠️  IMPORTANTE - LEER PRIMERO                                       ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Tu configuración:
+  • Sistema operativo: Ubuntu en WSL (Windows Subsystem for Linux)
+  • Navegador: Windows (Chrome/Firefox/Edge)
+  • Problema: localhost NO funciona desde Windows hacia WSL
+
+Solución aplicada:
+  ✅ Configurar DSpace con la IP de WSL
+  ✅ IP actual: 172.27.72.64
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🌐 ACCEDER A DSPACE DESDE WINDOWS                                   ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+En tu navegador de Windows (NO en WSL), abre:
+
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  http://172.27.72.64:4000                                        │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+PASOS:
+  1. Abre Chrome, Firefox o Edge EN WINDOWS
+  2. Escribe en la barra de direcciones: http://172.27.72.64:4000
+  3. Presiona Enter
+  4. Espera 10-15 segundos a que cargue
+  5. Selecciona "Español" en el selector de idioma
+  6. ¡Listo! Ya puedes usar DSpace
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📱 OTRAS URLS DESDE WINDOWS                                         ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  DSpace (Principal):      http://172.27.72.64:4000
+  DSpace API:              http://172.27.72.64:8090/server/api
+  Panel de Administración: http://172.27.72.64:8081
+  Solr:                    http://172.27.72.64:8983/solr
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🔄 SI LA IP DE WSL CAMBIA                                           ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+La IP de WSL puede cambiar al reiniciar Windows o WSL.
+
+SÍNTOMAS:
+  • La página no carga en el navegador
+  • Sale error "No se puede acceder a este sitio"
+  • Pantalla blanca
+
+SOLUCIÓN RÁPIDA:
+
+  1. Abre Ubuntu (WSL)
+
+  2. Ejecuta el script automático:
+     ./actualizar-ip-wsl.sh
+
+  3. El script:
+     ✓ Detecta la nueva IP automáticamente
+     ✓ Actualiza la configuración
+     ✓ Reinicia los servicios
+     ✓ Te muestra la nueva URL
+
+  4. Espera 2-3 minutos
+
+  5. Usa la nueva URL que te muestra el script
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🔍 VERIFICAR LA IP DE WSL                                           ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Desde Ubuntu (WSL):
+
+  hostname -I | awk '{print $1}'
+
+Te mostrará algo como:
+  172.27.72.64  ← Esta es tu IP de WSL
+
+Usa esa IP en el navegador de Windows:
+  http://[TU_IP]:4000
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  ✅ VERIFICACIÓN DEL SISTEMA                                         ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+DESDE WSL (Ubuntu):
+
+  1. Ver IP actual:
+     hostname -I
+
+  2. Verificar contenedores:
+     docker ps
+
+     Debes ver 8 contenedores corriendo
+
+  3. Verificar backend:
+     curl -I http://172.27.72.64:8090/server/api
+
+     Debe devolver: HTTP/1.1 200
+
+DESDE WINDOWS (PowerShell o CMD):
+
+  1. Verificar que puedes alcanzar WSL:
+     ping 172.27.72.64
+
+  2. Probar API:
+     curl http://172.27.72.64:8090/server/api
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🐛 SOLUCIÓN DE PROBLEMAS                                            ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+PROBLEMA 1: Pantalla blanca en Windows
+
+  Causa: La IP de WSL cambió
+
+  Solución:
+    cd /home/marcos/biblioteca
+    ./actualizar-ip-wsl.sh
+
+
+PROBLEMA 2: "No se puede acceder a este sitio"
+
+  Opción A - Verificar IP:
+    hostname -I | awk '{print $1}'
+    Usa esa IP en el navegador
+
+  Opción B - Firewall de Windows:
+    1. Buscar "Firewall de Windows Defender"
+    2. "Configuración avanzada"
+    3. "Reglas de entrada" → "Nueva regla"
+    4. Puerto TCP: 4000, 8090, 8081
+    5. Permitir conexión
+
+
+PROBLEMA 3: Sigue en inglés
+
+  1. Espera a que cargue completamente (15 segundos)
+  2. Busca selector de idioma (arriba derecha)
+  3. Selecciona "Español"
+  4. Si no aparece, limpia caché: Ctrl+Shift+Delete
+
+
+PROBLEMA 4: Error 500
+
+  Causa: Los servicios aún no terminaron de iniciar
+
+  Solución:
+    Espera 2-3 minutos después de iniciar/reiniciar
+    Ver logs: docker logs -f dspace-angular
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📖 COMANDOS ÚTILES                                                  ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Iniciar sistema:
+  ./iniciar-sistema-espanol.sh
+
+Actualizar IP de WSL:
+  ./actualizar-ip-wsl.sh
+
+Ver IP actual:
+  hostname -I
+
+Ver logs:
+  docker logs -f dspace-angular
+
+Reiniciar servicios:
+  docker-compose restart dspace dspace-angular
+
+Ver contenedores:
+  docker ps
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🎯 ESTADO ACTUAL                                                    ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+✅ Sistema configurado para WSL
+✅ IP de WSL: 172.27.72.64
+✅ Angular compilado exitosamente
+✅ Backend funcionando
+✅ Idioma español configurado
+✅ Accesible desde Windows
+
+URL para Windows: http://172.27.72.64:4000
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📝 NOTAS IMPORTANTES                                                ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+1. SIEMPRE usa la IP de WSL (no localhost) desde Windows
+
+2. La IP de WSL puede cambiar:
+   • Al reiniciar Windows
+   • Al reiniciar WSL
+   • Al cambiar de red
+
+3. Si la IP cambia:
+   • Ejecuta: ./actualizar-ip-wsl.sh
+   • Espera 2-3 minutos
+   • Usa la nueva URL que te muestre
+
+4. Para saber tu IP actual en cualquier momento:
+   • En WSL: hostname -I
+
+5. El sistema tarda 2-3 minutos en estar listo después de iniciar
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  🚀 INICIO RÁPIDO                                                    ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+1. Desde WSL (Ubuntu):
+
+   cd /home/marcos/biblioteca
+   ./iniciar-sistema-espanol.sh
+
+2. Espera 3-5 minutos (primera vez)
+
+3. En Windows, abre tu navegador y ve a:
+
+   http://172.27.72.64:4000
+
+4. Selecciona "Español" en el selector de idioma
+
+5. ¡Listo! Ya estás usando DSpace
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  📚 DOCUMENTACIÓN                                                    ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  ACCESO_DESDE_WINDOWS.md  - Guía completa para WSL
+  ACCESO_WSL.txt            - Este archivo (resumen)
+  ESTADO_FINAL.txt          - Estado del sistema
+  actualizar-ip-wsl.sh      - Script automático de actualización
+
+
+═══════════════════════════════════════════════════════════════════════
+
+  Sistema:        DSpace 7.x en WSL
+  IP de WSL:      172.27.72.64
+  URL Windows:    http://172.27.72.64:4000
+  Idioma:         Español (es-ES)
+  Estado:         ✅ LISTO PARA USAR
+
+  🎉 ¡Accede desde Windows usando la IP de WSL!
+
+═══════════════════════════════════════════════════════════════════════

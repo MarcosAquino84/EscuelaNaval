@@ -1,0 +1,20 @@
+# Logs
+*.log
+logs/
+
+# Docker volumes data
+dspace/data/*
+postgresql/data/*
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

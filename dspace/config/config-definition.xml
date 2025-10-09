@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-definition>
+    <module>
+        <name>dspace</name>
+        <config>/dspace/config/dspace.cfg</config>
+    </module>
+</config-definition>
