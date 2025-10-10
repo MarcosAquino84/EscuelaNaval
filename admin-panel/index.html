@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Biblioteca Digital HENM</title>
+
+    <!-- Google Fonts - Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Paleta institucional mexicana */
+            --primary-color: #9D2449;      /* Guinda institucional */
+            --secondary-color: #2E7D32;    /* Verde institucional */
+            --accent-gold: #D4AF37;        /* Dorado emblemas */
+            --accent-red: #CE1126;         /* Rojo bandera */
+            --text-dark: #333333;          /* Gris oscuro texto */
+            --white: #FFFFFF;              /* Blanco */
+            --bg-light: #F5F5F5;           /* Fondo claro */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F1F1F1;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Barra tricolor superior */
+        .top-bar {
+            height: 8px;
+            width: 100%;
+            background: linear-gradient(to right,
+                var(--secondary-color) 0%,
+                var(--secondary-color) 33.33%,
+                var(--white) 33.33%,
+                var(--white) 66.66%,
+                var(--accent-red) 66.66%,
+                var(--accent-red) 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+        }
+
+        /* Super Header - Gobierno de México */
+        .super-header {
+            width: 100%;
+            background-color: #691C32;
+            margin-top: 8px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .super-header img {
+            height: 60px;
+            width: auto;
+            display: block;
+        }
+
+        /* Sub Header - Colegio Naval */
+        .sub-header {
+            width: 100%;
+            background-color: #E8DCC8;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+
+        .sub-header img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Container de login */
+        .login-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 8px;
+            padding: 50px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            border-top: 4px solid var(--accent-gold);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header .logo-box {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #7A1D3A 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .login-header .logo-box i {
+            font-size: 40px;
+            color: var(--accent-gold);
+        }
+
+        .login-header h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            margin-right: 8px;
+        }
+
+        .form-control {
+            padding: 12px 15px;
+            border-radius: 4px;
+            border: 2px solid #E0E0E0;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(157, 36, 73, 0.15);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border-radius: 4px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #7A1D3A 100%);
+            border: 2px solid var(--primary-color);
+            color: white;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7A1D3A 0%, var(--primary-color) 100%);
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(157, 36, 73, 0.3);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            border-radius: 4px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            font-size: 0.9rem;
+        }
+
+        .alert-danger {
+            background-color: #FDECEA;
+            border-left-color: var(--accent-red);
+            color: #7A1D1D;
+        }
+
+        .alert-success {
+            background-color: #E8F5E9;
+            border-left-color: var(--secondary-color);
+            color: #1B5E20;
+        }
+
+        .sistemas-info {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #E0E0E0;
+            text-center;
+        }
+
+        .sistemas-info p {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .sistema-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sistema-dspace {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #1B5E20 100%);
+            color: white;
+        }
+
+        .sistema-koha {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #7A1D3A 100%);
+            color: white;
+        }
+
+        .test-users {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .test-users small {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .test-users a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .test-users a:hover {
+            text-decoration: underline;
+            color: var(--accent-gold);
+        }
+
+        /* Footer institucional */
+        .footer {
+            width: 100%;
+            background-color: #691C32;
+            padding: 0;
+            margin-top: auto;
+        }
+
+        .footer img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
+
+        @media (max-width: 768px) {
+            .super-header img {
+                height: 45px;
+            }
+
+            .login-card {
+                padding: 30px 25px;
+            }
+
+            .login-header h2 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra tricolor superior -->
+    <div class="top-bar"></div>
+
+    <!-- Super Header - Gobierno de México -->
+    <div class="super-header">
+        <img src="SuperHeader.png" alt="Gobierno de México">
+    </div>
+
+    <!-- Sub Header - Colegio Naval -->
+    <div class="sub-header">
+        <img src="HeaderColegioNaval.png" alt="Universidad Naval - HENM">
+    </div>
+
+    <!-- Container de login -->
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-box">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <h2>Biblioteca Digital</h2>
+                <p>Sistema Integrado de Gestión Bibliotecaria</p>
+            </div>
+
+            <!-- Alerta de error -->
+            <div id="alertError" class="alert alert-danger d-none" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <!-- Alerta de éxito -->
+            <div id="alertSuccess" class="alert alert-success d-none" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="successMessage"></span>
+            </div>
+
+            <!-- Formulario de login -->
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Correo Electrónico
+                    </label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        placeholder="usuario@biblioteca.local"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i> Contraseña
+                    </label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-login" id="btnLogin">
+                    <span id="btnText">
+                        <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+                    </span>
+                    <span id="btnSpinner" class="d-none">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Autenticando...
+                    </span>
+                </button>
+            </form>
+
+            <!-- Información de sistemas -->
+            <div class="sistemas-info">
+                <p>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Acceso unificado a:
+                </p>
+                <div>
+                    <span class="sistema-badge sistema-koha">
+                        <i class="fas fa-book me-1"></i> Koha
+                    </span>
+                    <span class="sistema-badge sistema-dspace">
+                        <i class="fas fa-archive me-1"></i> DSpace
+                    </span>
+                </div>
+            </div>
+
+            <!-- Usuarios de prueba -->
+            <div class="test-users">
+                <small class="text-muted">
+                    <strong>Usuarios de prueba:</strong><br>
+                    <a href="#" onclick="setTestUser('admin'); return false;">Admin</a> |
+                    <a href="#" onclick="setTestUser('marcos'); return false;">Marcos</a> |
+                    <a href="#" onclick="setTestUser('maria'); return false;">María García</a>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer institucional -->
+    <footer class="footer">
+        <img src="Footer.png" alt="Footer Institucional">
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        console.log('Login page loaded');
+</script>
+    <script>
+        const AUTH_API = 'http://localhost:3000/api';
+        console.log('AUTH_API configured:', AUTH_API);
+
+        // Usuarios de prueba
+        const testUsers = {
+            admin: {
+                email: 'admin@biblioteca.local',
+                password: 'admin123'
+            },
+            marcos: {
+                email: 'marcos@biblioteca.local',
+                password: 'marcos123'
+            },
+            maria: {
+                email: 'maria.garcia@estudiante.local',
+                password: 'estudiante123'
+            }
+        };
+
+        // Establecer usuario de prueba
+        function setTestUser(tipo) {
+            const user = testUsers[tipo];
+            document.getElementById('email').value = user.email;
+            document.getElementById('password').value = user.password;
+        }
+
+        // Mostrar alerta de error
+        function showError(message) {
+            const alertError = document.getElementById('alertError');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            alertError.classList.remove('d-none');
+            setTimeout(() => {
+                alertError.classList.add('d-none');
+            }, 5000);
+        }
+
+        // Mostrar alerta de éxito
+        function showSuccess(message) {
+            const alertSuccess = document.getElementById('alertSuccess');
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            alertSuccess.classList.remove('d-none');
+        }
+
+        // Cambiar estado del botón
+        function setButtonLoading(loading) {
+            const btnLogin = document.getElementById('btnLogin');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+
+            btnLogin.disabled = loading;
+            if (loading) {
+                btnText.classList.add('d-none');
+                btnSpinner.classList.remove('d-none');
+            } else {
+                btnText.classList.remove('d-none');
+                btnSpinner.classList.add('d-none');
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            setButtonLoading(true);
+
+            try {
+                // Llamar a la API de autenticación
+                const response = await fetch(`${AUTH_API}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                console.log('Login response:', data);
+
+                if (data.success) {
+                    showSuccess(`¡Bienvenido ${data.usuario.nombreCompleto}!`);
+
+                    // Guardar datos en sessionStorage
+                    sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
+                    sessionStorage.setItem('privilegios', JSON.stringify(data.privilegios));
+                    sessionStorage.setItem('sistemas_disponibles', JSON.stringify(data.sistemas_disponibles));
+
+                    console.log('Data saved to sessionStorage, redirecting to dashboard...');
+
+                    // Redirigir al dashboard
+                    setTimeout(() => {
+                        console.log('Redirecting now...');
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+
+                } else {
+                    showError(data.message || 'Credenciales incorrectas');
+                    setButtonLoading(false);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión. Verificar que el servicio de autenticación esté activo.');
+                setButtonLoading(false);
+            }
+        });
+
+        // Verificar si ya hay sesión activa - COMENTADO para evitar ciclo
+        // window.addEventListener('DOMContentLoaded', async function() {
+        //     try {
+        //         const response = await fetch(`${AUTH_API}/session`, {
+        //             credentials: 'include'
+        //         });
+        //         const data = await response.json();
+        //
+        //         if (data.autenticado) {
+        //             // Ya hay sesión, redirigir al dashboard
+        //             window.location.href = 'dashboard.html';
+        //         }
+        //     } catch (error) {
+        //         console.log('No hay sesión activa');
+        //     }
+        // });
+    </script>
+</body>
+</html>

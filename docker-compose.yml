@@ -101,17 +101,51 @@ services:
       DSPACE_REST_HOST: '172.27.72.64'
       DSPACE_REST_PORT: '8090'
       DSPACE_REST_NAMESPACE: '/server'
+
       # Configuración de idioma español
       LANG: 'es_ES.UTF-8'
       LANGUAGE: 'es_ES:es'
       LC_ALL: 'es_ES.UTF-8'
+      TZ: 'America/Argentina/Buenos_Aires'
+
+      # Idioma por defecto para Angular
+      DEFAULT_LANGUAGE: 'es'
+      LANGUAGES: '[{"code":"es","label":"Español","active":true},{"code":"en","label":"English","active":true}]'
+    volumes:
+      - ./dspace-angular-config/config.yml:/app/config/config.yml:ro
+      - ./dspace-angular-config/config.prod.yml:/app/config/config.prod.yml:ro
     networks:
       - dspacenet
     ports:
       - "4000:4000"
 
+  # === AUTHENTICATION SERVICE ===
+
+  # Servicio de Autenticación Centralizado (SSO)
+  auth-service:
+    container_name: auth-service
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - dspacedb
+      - koha-db
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DSPACE_API_URL=http://172.27.72.64:8090/server/api
+      - KOHA_API_URL=http://172.27.72.64/api
+    networks:
+      - dspacenet
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+
   # === KOHA SERVICES ===
-  
+
   # MariaDB database for Koha
   koha-db:
     container_name: koha-mariadb
@@ -185,6 +219,21 @@ services:
         echo 'Koha API Proxy iniciado' &&
         nginx -g 'daemon off;'
       "
+
+  # Panel de Administración
+  admin-panel:
+    container_name: admin-panel
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./admin-panel:/usr/share/nginx/html:ro
+    networks:
+      - dspacenet
+    ports:
+      - "8088:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
 
 volumes:
   pgdata:

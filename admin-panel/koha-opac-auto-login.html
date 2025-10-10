@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accediendo al OPAC - Koha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+            color: white;
+        }
+        .loader-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .spinner {
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            margin: 0 0 10px 0;
+        }
+        p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <div class="spinner"></div>
+        <h2>📚 Accediendo al OPAC de Koha</h2>
+        <p>Autenticando automáticamente...</p>
+        <div class="status" id="status">Preparando acceso...</div>
+    </div>
+
+    <script>
+        // Obtener datos del usuario desde sessionStorage
+        const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+        const status = document.getElementById('status');
+
+        if (!usuario) {
+            status.textContent = '❌ No hay sesión activa. Redirigiendo al login...';
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+        } else {
+            status.textContent = `👤 Usuario: ${usuario.nombreCompleto}`;
+
+            // Crear formulario para enviar al OPAC
+            setTimeout(() => {
+                status.textContent = '🔑 Enviando credenciales...';
+
+                // Mapeo de emails a userids de Koha
+                const kohaUserMap = {
+                    'admin@biblioteca.local': 'admin',
+                    'alumno@biblioteca.local': 'alumno',
+                    'marcos@biblioteca.local': 'Marcos',
+                    'maria.garcia@estudiante.local': 'maria.garcia'
+                };
+
+                const kohaUserid = kohaUserMap[usuario.email] || usuario.email.split('@')[0];
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'http://biblioteca.localhost:8080/cgi-bin/koha/opac-user.pl';
+                form.id = 'autoLoginForm';
+
+                // Campo de contexto Koha (REQUERIDO)
+                const contextField = document.createElement('input');
+                contextField.type = 'hidden';
+                contextField.name = 'koha_login_context';
+                contextField.value = 'opac';
+                form.appendChild(contextField);
+
+                // Campo de operación (REQUERIDO)
+                const opField = document.createElement('input');
+                opField.type = 'hidden';
+                opField.name = 'op';
+                opField.value = 'cud-login';
+                form.appendChild(opField);
+
+                // Campo de usuario (nombre correcto: login_userid)
+                const useridField = document.createElement('input');
+                useridField.type = 'hidden';
+                useridField.name = 'login_userid';
+                useridField.value = kohaUserid;
+                form.appendChild(useridField);
+
+                // Campo de contraseña (nombre correcto: login_password)
+                const passwordField = document.createElement('input');
+                passwordField.type = 'hidden';
+                passwordField.name = 'login_password';
+                passwordField.value = usuario.password;
+                form.appendChild(passwordField);
+
+                // Agregar formulario al body y enviarlo
+                document.body.appendChild(form);
+
+                status.textContent = `✅ Redirigiendo al OPAC... (Usuario: ${kohaUserid})`;
+
+                setTimeout(() => {
+                    form.submit();
+                }, 1000);
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
