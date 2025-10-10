@@ -1,9 +1,55 @@
 /**
- * Servicio de Autenticación Centralizado (SSO)
- * Panel de Biblioteca Digital
+ * ============================================================================
+ * SERVICIO DE AUTENTICACIÓN CENTRALIZADO (SSO)
+ * Panel de Biblioteca Digital - HENM
+ * ============================================================================
  *
- * Este servicio actúa como intermediario de autenticación entre
- * el usuario y los sistemas DSpace y Koha
+ * ARQUITECTURA ACTUAL:
+ *
+ * 1. USUARIOS ACCEDEN A: http://localhost:8088 (Admin Panel)
+ * 2. LOGIN EN: admin-panel/index.html
+ *    - Envía POST a /api/login con email/password
+ *    - Recibe usuario, privilegios, sistemas_disponibles
+ *    - Guarda en sessionStorage
+ *    - Redirige a dashboard.html
+ *
+ * 3. DASHBOARD: admin-panel/dashboard.html
+ *    - Lee sessionStorage para verificar sesión
+ *    - Muestra sistemas según privilegios del usuario
+ *    - Al hacer clic en sistema, abre auto-login page
+ *
+ * 4. AUTO-LOGIN PAGES (intermediarios):
+ *    - dspace-auto-login.html: Lee sessionStorage, guarda en localStorage, redirige a DSpace
+ *    - koha-opac-auto-login.html: Crea formulario POST y envía a Koha OPAC
+ *    - koha-auto-login.html: Crea formulario POST y envía a Koha Staff
+ *
+ * SISTEMAS INTEGRADOS:
+ * - Koha: Instalación REAL en Ubuntu (no Docker)
+ *   - Staff: http://172.27.72.64:8101 (localhost:8101)
+ *   - OPAC: http://172.27.72.64:8080 (localhost:8080)
+ * - DSpace: Docker container
+ *   - Frontend: http://172.27.72.64:4000 (localhost:4000)
+ *   - Backend: http://172.27.72.64:8090 (localhost:8090)
+ *
+ * USUARIOS ACTUALES:
+ * - admin@biblioteca.local / admin123 (Administrador - todos los sistemas)
+ * - marcos@biblioteca.local / marcos123 (Administrador - todos los sistemas)
+ * - maria.garcia@estudiante.local / estudiante123 (Estudiante - DSpace + OPAC solo)
+ *
+ * ACCESO DESDE WINDOWS (WSL):
+ * - Koha y DSpace corren en WSL Ubuntu
+ * - Usuario visualiza desde navegador Windows
+ * - IP de WSL: 172.27.72.64
+ *
+ * ENDPOINTS ACTIVOS:
+ * ✅ POST /api/login - Autenticación centralizada (SE USA)
+ * ✅ GET /api/session - Verificar sesión activa (SE USA)
+ * ✅ POST /api/logout - Cerrar sesión (SE USA)
+ * ✅ GET /health - Health check (SE USA)
+ * ❌ POST /api/get-access-url - NO SE USA (comentado)
+ * ❌ GET /api/koha-redirect - NO SE USA (comentado)
+ *
+ * ============================================================================
  */
 
 const express = require('express');
@@ -105,7 +151,21 @@ function verificarPassword(passwordIngresada, passwordHash) {
     return false;
 }
 
-// Función para autenticar en DSpace
+// ============================================================================
+// FUNCIONES DE AUTENTICACIÓN CONTRA SISTEMAS EXTERNOS
+// ============================================================================
+
+// NOTA IMPORTANTE: Estas funciones intentan autenticar contra DSpace y Koha
+// durante el login, pero NO son críticas para el funcionamiento del sistema.
+// El auto-login real se hace en las páginas intermedias (dspace-auto-login.html, etc.)
+// que leen las credenciales de sessionStorage y las envían directamente.
+//
+// Estas funciones están aquí para:
+// 1. Validar opcionalmente que las credenciales son correctas en los sistemas
+// 2. Obtener tokens que podrían usarse en el futuro
+// 3. Mantener compatibilidad con versiones anteriores
+
+// Función para autenticar en DSpace (OPCIONAL - no crítica)
 async function autenticarDSpace(email, password) {
     try {
         const response = await axios.post('http://172.27.72.64:8090/server/api/authn/login', {
@@ -127,24 +187,25 @@ async function autenticarDSpace(email, password) {
         return { success: false };
     } catch (error) {
         console.log('Error autenticando en DSpace:', error.message);
+        // No es crítico, el auto-login se hace en dspace-auto-login.html
         return { success: false, error: error.message };
     }
 }
 
-// Función para autenticar en Koha
+// Función para autenticar en Koha (OPCIONAL - no crítica)
 async function autenticarKoha(userid, password) {
     try {
-        // Mapeo de emails a userids de Koha
+        // Mapeo de emails a userids de Koha (IMPORTANTE: case-sensitive!)
         const kohaUserMap = {
             'admin@biblioteca.local': 'admin',
             'alumno@biblioteca.local': 'alumno',
-            'marcos@biblioteca.local': 'Marcos',
+            'marcos@biblioteca.local': 'Marcos',        // ← Mayúscula importante
             'maria.garcia@estudiante.local': 'maria.garcia'
         };
 
         const kohaUserid = kohaUserMap[userid] || userid;
 
-        // Intentar login en Koha
+        // Intentar login en Koha Staff Interface
         const response = await axios.post(
             'http://172.27.72.64/cgi-bin/koha/mainpage.pl',
             `userid=${encodeURIComponent(kohaUserid)}&password=${encodeURIComponent(password)}`,
@@ -159,7 +220,7 @@ async function autenticarKoha(userid, password) {
             }
         );
 
-        // Extraer cookie CGISESSID
+        // Extraer cookie CGISESSID de la respuesta
         const cookies = response.headers['set-cookie'];
         if (cookies) {
             const cgisessid = cookies.find(cookie => cookie.includes('CGISESSID'));
@@ -178,6 +239,7 @@ async function autenticarKoha(userid, password) {
         return { success: false };
     } catch (error) {
         console.log('Error autenticando en Koha:', error.message);
+        // No es crítico, el auto-login se hace en koha-auto-login.html y koha-opac-auto-login.html
         return { success: false, error: error.message };
     }
 }
@@ -322,7 +384,15 @@ app.post('/api/logout', async (req, res) => {
     });
 });
 
-// Endpoint: Obtener URL de acceso a sistema
+// ============================================================================
+// ENDPOINTS NO UTILIZADOS ACTUALMENTE
+// Estos endpoints están disponibles pero no se usan en el flujo actual.
+// El sistema usa auto-login pages en su lugar (dspace-auto-login.html, etc.)
+// ============================================================================
+
+// NOTA: Este endpoint NO se usa actualmente
+// El dashboard abre directamente las páginas de auto-login
+/*
 app.post('/api/get-access-url', (req, res) => {
     const { sistema } = req.body;
 
@@ -364,8 +434,12 @@ app.post('/api/get-access-url', (req, res) => {
         mensaje: `Redirigiendo a ${sistema.toUpperCase()}...`
     });
 });
+*/
 
-// Endpoint: Proxy para acceder a Koha con auto-login
+// NOTA: Este endpoint NO se usa actualmente
+// El auto-login a Koha se hace con koha-auto-login.html y koha-opac-auto-login.html
+// que envían formularios POST directamente a Koha
+/*
 app.get('/api/koha-redirect', (req, res) => {
     if (!req.session.usuario) {
         return res.status(401).send('No autenticado');
@@ -431,6 +505,7 @@ app.get('/api/koha-redirect', (req, res) => {
 
     res.send(html);
 });
+*/
 
 // Endpoint: Health check
 app.get('/health', (req, res) => {
