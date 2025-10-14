@@ -1,0 +1,33 @@
+# Configuración de idioma español para DSpace Angular
+# Este archivo sobrescribe la configuración por defecto
+
+# Idioma por defecto: Español
+defaultLanguage: es
+
+# Idiomas disponibles
+languages:
+  - code: es
+    label: Español
+    active: true
+  - code: en
+    label: English
+    active: true
+
+# URLs del servidor (ya configuradas en docker-compose.yml)
+rest:
+  ssl: false
+  host: 172.27.72.64
+  port: 8090
+  nameSpace: /server
+
+ui:
+  ssl: false
+  host: 0.0.0.0
+  port: 4000
+  nameSpace: /dspace
+
+# Nombre del sitio
+dspaceName: Biblioteca Digital
+
+# Zona horaria
+timezone: America/Argentina/Buenos_Aires

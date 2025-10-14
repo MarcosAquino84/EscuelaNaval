@@ -1,0 +1,30 @@
+# Configuración de idioma español para DSpace Angular
+
+# Idioma por defecto: Español
+defaultLanguage: es
+
+# Idiomas disponibles
+languages:
+  - code: es
+    label: Español
+    active: true
+  - code: en
+    label: English
+    active: true
+
+# URLs del servidor - usar mismo origen que UI (ngrok)
+rest:
+  ssl: false
+  nameSpace: /server
+
+ui:
+  ssl: false
+  host: 0.0.0.0
+  port: 4000
+  nameSpace: /dspace
+
+# Nombre del sitio
+dspaceName: Biblioteca Digital
+
+# Zona horaria
+timezone: America/Argentina/Buenos_Aires

@@ -250,25 +250,10 @@
             color: white;
         }
 
-        .test-users {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .test-users small {
-            font-size: 0.8rem;
-            color: #999;
-        }
-
-        .test-users a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .test-users a:hover {
-            text-decoration: underline;
-            color: var(--accent-gold);
+        .sistema-citas {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #B8941D 100%);
+            color: var(--text-dark);
+            font-weight: 700;
         }
 
         /* Footer institucional */
@@ -397,17 +382,10 @@
                     <span class="sistema-badge sistema-dspace">
                         <i class="fas fa-archive me-1"></i> DSpace
                     </span>
+                    <span class="sistema-badge sistema-citas">
+                        <i class="fas fa-calendar-check me-1"></i> Gestión de Citas
+                    </span>
                 </div>
-            </div>
-
-            <!-- Usuarios de prueba -->
-            <div class="test-users">
-                <small class="text-muted">
-                    <strong>Usuarios de prueba:</strong><br>
-                    <a href="#" onclick="setTestUser('admin'); return false;">Admin</a> |
-                    <a href="#" onclick="setTestUser('marcos'); return false;">Marcos</a> |
-                    <a href="#" onclick="setTestUser('maria'); return false;">María García</a>
-                </small>
             </div>
         </div>
     </div>
@@ -422,31 +400,8 @@
         console.log('Login page loaded');
 </script>
     <script>
-        const AUTH_API = 'http://localhost:3000/api';
+        const AUTH_API = '/api';
         console.log('AUTH_API configured:', AUTH_API);
-
-        // Usuarios de prueba
-        const testUsers = {
-            admin: {
-                email: 'admin@biblioteca.local',
-                password: 'admin123'
-            },
-            marcos: {
-                email: 'marcos@biblioteca.local',
-                password: 'marcos123'
-            },
-            maria: {
-                email: 'maria.garcia@estudiante.local',
-                password: 'estudiante123'
-            }
-        };
-
-        // Establecer usuario de prueba
-        function setTestUser(tipo) {
-            const user = testUsers[tipo];
-            document.getElementById('email').value = user.email;
-            document.getElementById('password').value = user.password;
-        }
 
         // Mostrar alerta de error
         function showError(message) {

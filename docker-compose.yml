@@ -26,9 +26,12 @@ services:
       # Configuración de red
       proxies__P__trusted__P__ipranges: '172.23.0, 172.27.0'
 
-      # URLs (WSL - accesible desde Windows)
-      dspace__P__server__P__url: 'http://172.27.72.64:8090/server'
-      dspace__P__ui__P__url: 'http://172.27.72.64:4000'
+      # URLs (ngrok - accesible desde Internet)
+      dspace__P__server__P__url: 'https://bolshevistically-prototypal-dorris.ngrok-free.dev/server'
+      dspace__P__ui__P__url: 'https://bolshevistically-prototypal-dorris.ngrok-free.dev/dspace'
+
+      # Permitir peticiones desde ngrok (CORS)
+      rest__P__cors__P__allowed__origins: 'https://bolshevistically-prototypal-dorris.ngrok-free.dev'
 
       # Configuración de idioma español
       default__P__locale: 'es'
@@ -96,10 +99,10 @@ services:
       DSPACE_UI_SSL: 'false'
       DSPACE_UI_HOST: '0.0.0.0'
       DSPACE_UI_PORT: '4000'
-      DSPACE_UI_NAMESPACE: '/'
-      DSPACE_REST_SSL: 'false'
-      DSPACE_REST_HOST: '172.27.72.64'
-      DSPACE_REST_PORT: '8090'
+      DSPACE_UI_NAMESPACE: '/dspace'
+      DSPACE_REST_SSL: 'true'
+      DSPACE_REST_HOST: 'bolshevistically-prototypal-dorris.ngrok-free.dev'
+      DSPACE_REST_PORT: '443'
       DSPACE_REST_NAMESPACE: '/server'
 
       # Configuración de idioma español
@@ -118,6 +121,8 @@ services:
       - dspacenet
     ports:
       - "4000:4000"
+    # Agregar flag para desactivar validación de host (necesario para ngrok)
+    command: sh -c "yarn serve --host 0.0.0.0 --disable-host-check"
 
   # === AUTHENTICATION SERVICE ===
 
@@ -234,6 +239,23 @@ services:
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
+
+  # Proxy Unificado para ngrok (Plan Gratuito)
+  ngrok-proxy:
+    container_name: ngrok-proxy
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx-proxy-unified.conf:/etc/nginx/nginx.conf:ro
+      - ./admin-panel:/usr/share/nginx/html:ro
+      - /usr/share/koha:/host/usr/share/koha:ro
+    networks:
+      - dspacenet
+    ports:
+      - "9000:80"
+    depends_on:
+      - admin-panel
+      - auth-service
 
 volumes:
   pgdata:
