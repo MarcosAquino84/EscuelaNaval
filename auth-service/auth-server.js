@@ -68,20 +68,42 @@ const app = express();
 const PORT = 3000;
 
 // Configuración de middleware
+// Lista de orígenes permitidos (CORS)
+const allowedOrigins = [
+    'http://localhost:8088',
+    'http://172.27.72.64:8088',
+    'http://localhost:4000',
+    'http://172.27.72.64:4000',
+    'http://localhost:8080',
+    'http://172.27.72.64:8080',
+    'http://localhost:8101',
+    'http://172.27.72.64:8101'
+];
+
 app.use(cors({
-    origin: true, // Permitir todos los orígenes (el proxy nginx maneja CORS)
+    origin: function (origin, callback) {
+        // Permitir requests sin origin (como desde Postman o curl)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Acceso no permitido por política CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-    secret: 'biblioteca-digital-secret-2025',
+    secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false, // Cambiar a true en producción con HTTPS
+        secure: process.env.NODE_ENV === 'production', // true en producción con HTTPS
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+        maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        sameSite: 'lax' // Protección adicional contra CSRF
     }
 }));
 
@@ -296,8 +318,7 @@ app.post('/api/login', async (req, res) => {
                 nombreCompleto: `${usuarioDB.nombre} ${usuarioDB.apellido}`,
                 tipo: usuarioDB.tipo,
                 privilegios: privilegios,
-                especialidad: usuarioDB.especialidad || null,
-                password: password // Enviar para autenticación automática
+                especialidad: usuarioDB.especialidad || null
             },
             tokens: {
                 dspace: dspaceAuth.success ? dspaceAuth.token : null,
@@ -715,6 +736,205 @@ app.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (r
         res.status(500).json({
             success: false,
             message: 'Error al eliminar usuario'
+        });
+    }
+});
+
+// ============================================================================
+// ENDPOINTS DE RECUPERACIÓN DE CONTRASEÑA
+// ============================================================================
+
+// POST /api/password-reset/request - Solicitar recuperación de contraseña
+app.post('/api/password-reset/request', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'El email es requerido'
+            });
+        }
+
+        // Buscar usuario por email
+        const result = await query(
+            'SELECT id, email, nombre, apellido FROM usuarios WHERE email = $1 AND activo = true',
+            [email]
+        );
+
+        // Por seguridad, siempre devolvemos éxito aunque el email no exista
+        // Esto previene la enumeración de usuarios
+        if (result.rows.length === 0) {
+            return res.json({
+                success: true,
+                message: 'Si el email existe, se ha generado un enlace de recuperación',
+                // No revelamos que el usuario no existe
+                token: null,
+                enlace: null
+            });
+        }
+
+        const usuario = result.rows[0];
+
+        // Generar token UUID
+        const crypto = require('crypto');
+        const token = crypto.randomUUID();
+
+        // Calcular expiración (1 hora desde ahora)
+        const expiraEn = new Date(Date.now() + 60 * 60 * 1000); // +1 hora
+
+        // Insertar token en base de datos
+        await query(
+            `INSERT INTO password_reset_tokens (usuario_id, token, expira_en)
+             VALUES ($1, $2, $3)`,
+            [usuario.id, token, expiraEn]
+        );
+
+        // Construir enlace de recuperación
+        const baseUrl = process.env.BASE_URL || 'http://localhost:8088';
+        const enlaceRecuperacion = `${baseUrl}/reset-password.html?token=${token}`;
+
+        console.log(`✅ Token de recuperación generado para: ${email}`);
+        console.log(`   Token: ${token}`);
+        console.log(`   Expira: ${expiraEn.toISOString()}`);
+
+        res.json({
+            success: true,
+            message: 'Si el email existe, se ha generado un enlace de recuperación',
+            token: token,
+            enlace: enlaceRecuperacion,
+            expira_en: expiraEn.toISOString(),
+            // En desarrollo mostramos el token, en producción solo enviaríamos por email
+            usuario: {
+                nombre: usuario.nombre,
+                apellido: usuario.apellido
+            }
+        });
+
+    } catch (error) {
+        console.error('Error en password-reset/request:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al procesar la solicitud'
+        });
+    }
+});
+
+// POST /api/password-reset/validate - Validar token de recuperación
+app.post('/api/password-reset/validate', async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                valid: false,
+                message: 'Token requerido'
+            });
+        }
+
+        // Buscar token válido (no usado y no expirado)
+        const result = await query(
+            `SELECT t.id, t.usuario_id, t.expira_en, u.email, u.nombre, u.apellido
+             FROM password_reset_tokens t
+             JOIN usuarios u ON t.usuario_id = u.id
+             WHERE t.token = $1
+             AND t.usado = false
+             AND t.expira_en > NOW()`,
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return res.json({
+                valid: false,
+                message: 'Token inválido o expirado'
+            });
+        }
+
+        const tokenData = result.rows[0];
+
+        res.json({
+            valid: true,
+            email: tokenData.email,
+            nombre: tokenData.nombre,
+            apellido: tokenData.apellido,
+            expira_en: tokenData.expira_en
+        });
+
+    } catch (error) {
+        console.error('Error en password-reset/validate:', error);
+        res.status(500).json({
+            valid: false,
+            message: 'Error al validar token'
+        });
+    }
+});
+
+// POST /api/password-reset/reset - Resetear contraseña con token
+app.post('/api/password-reset/reset', async (req, res) => {
+    try {
+        const { token, nueva_password } = req.body;
+
+        if (!token || !nueva_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token y nueva contraseña son requeridos'
+            });
+        }
+
+        // Validar longitud de contraseña
+        if (nueva_password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'La contraseña debe tener al menos 6 caracteres'
+            });
+        }
+
+        // Buscar token válido (no usado y no expirado)
+        const tokenResult = await query(
+            `SELECT id, usuario_id, expira_en
+             FROM password_reset_tokens
+             WHERE token = $1
+             AND usado = false
+             AND expira_en > NOW()`,
+            [token]
+        );
+
+        if (tokenResult.rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token inválido o expirado'
+            });
+        }
+
+        const tokenData = tokenResult.rows[0];
+
+        // Hashear nueva contraseña con bcrypt
+        const passwordHash = await bcrypt.hash(nueva_password, 10);
+
+        // Actualizar contraseña del usuario
+        await query(
+            'UPDATE usuarios SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+            [passwordHash, tokenData.usuario_id]
+        );
+
+        // Marcar token como usado
+        await query(
+            'UPDATE password_reset_tokens SET usado = true, usado_en = NOW() WHERE id = $1',
+            [tokenData.id]
+        );
+
+        console.log(`✅ Contraseña actualizada para usuario ID: ${tokenData.usuario_id}`);
+
+        res.json({
+            success: true,
+            message: 'Contraseña actualizada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('Error en password-reset/reset:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al resetear contraseña'
         });
     }
 });

@@ -17,8 +17,8 @@ services:
 
       # Base de datos
       db__P__url: 'jdbc:postgresql://dspacedb:5432/dspace'
-      db__P__username: 'dspace'
-      db__P__password: 'dspace'
+      db__P__username: '${POSTGRES_USER}'
+      db__P__password: '${POSTGRES_PASSWORD}'
 
       # Solr
       solr__P__server: 'http://dspacesolr:8983/solr'
@@ -67,9 +67,9 @@ services:
     container_name: dspacedb
     image: dspace/dspace-postgres-pgcrypto:dspace-7_x
     environment:
-      POSTGRES_DB: dspace
-      POSTGRES_USER: dspace  
-      POSTGRES_PASSWORD: dspace
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /pgdata
     networks:
       - dspacenet
@@ -137,10 +137,17 @@ services:
       - dspacedb
       - koha-db
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV}
       - PORT=3000
+      - SESSION_SECRET=${SESSION_SECRET}
+      - DB_HOST=dspacedb
+      - DB_PORT=5432
+      - DB_NAME=biblioteca_auth
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DSPACE_API_URL=http://172.27.72.64:8090/server/api
       - KOHA_API_URL=http://172.27.72.64/api
+      - BASE_URL=http://localhost:8088
     networks:
       - dspacenet
     ports:
@@ -157,10 +164,10 @@ services:
     image: mariadb:10.11
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: koha_root_password
-      MYSQL_DATABASE: koha_biblioteca
-      MYSQL_USER: koha
-      MYSQL_PASSWORD: koha_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - koha_db_data:/var/lib/mysql
       - ./koha/init:/docker-entrypoint-initdb.d:ro
