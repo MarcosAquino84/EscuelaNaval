@@ -74,7 +74,7 @@ services:
     networks:
       - dspacenet
     ports:
-      - "5433:5432"
+      - "5433:5432"  # NOTA: Idealmente restringir con firewall externo
     volumes:
       - pgdata:/pgdata
 
@@ -121,8 +121,8 @@ services:
       - dspacenet
     ports:
       - "4000:4000"
-    # Agregar flag para desactivar validación de host (necesario para ngrok)
-    command: sh -c "yarn serve --host 0.0.0.0 --disable-host-check"
+    # Especificar hosts permitidos en lugar de deshabilitar validación completamente
+    command: sh -c "yarn serve --host 0.0.0.0 --allowed-hosts bolshevistically-prototypal-dorris.ngrok-free.dev,localhost,172.27.72.64"
 
   # === AUTHENTICATION SERVICE ===
 
@@ -174,7 +174,7 @@ services:
     networks:
       - dspacenet
     ports:
-      - "3307:3306"
+      - "3307:3306"  # NOTA: Idealmente restringir con firewall externo
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   # Memcached for Koha
@@ -239,6 +239,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./admin-panel:/usr/share/nginx/html:ro
+      - ./nginx-admin-panel.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - dspacenet
     ports:
@@ -246,6 +247,8 @@ services:
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
+    depends_on:
+      - auth-service
 
   # Proxy Unificado para ngrok (Plan Gratuito)
   ngrok-proxy:

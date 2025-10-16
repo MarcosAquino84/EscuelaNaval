@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net cdnjs.cloudflare.com; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
     <title>Login - Biblioteca Digital HENM</title>
 
     <!-- Google Fonts - Montserrat -->
@@ -276,6 +281,23 @@
             border-width: 0.15em;
         }
 
+        .forgot-password-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password-link:hover {
+            color: var(--accent-gold);
+            text-decoration: underline;
+        }
+
+        .forgot-password-link i {
+            font-size: 0.8rem;
+        }
+
         @media (max-width: 768px) {
             .super-header img {
                 height: 45px;
@@ -356,6 +378,12 @@
                         required
                         autocomplete="current-password"
                     >
+                </div>
+
+                <div class="text-end mb-3">
+                    <a href="forgot-password.html" class="forgot-password-link">
+                        <i class="fas fa-key me-1"></i> ¿Olvidaste tu contraseña?
+                    </a>
                 </div>
 
                 <button type="submit" class="btn btn-login" id="btnLogin">

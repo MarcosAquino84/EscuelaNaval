@@ -157,6 +157,16 @@
         }
 
         .badge-orientador {
+            background: linear-gradient(135deg, #7B1FA2 0%, #4A148C 100%);
+            color: white;
+        }
+
+        .badge-psicologo {
+            background: linear-gradient(135deg, #7B1FA2 0%, #4A148C 100%);
+            color: white;
+        }
+
+        .badge-profesor {
             background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
             color: white;
         }
@@ -518,7 +528,7 @@
                 url: 'dspace-auto-login.html',
                 useAutoLogin: true,
                 type: 'page',
-                roles: ['estudiante', 'administrador']
+                roles: ['estudiante', 'administrador', 'profesor', 'psicologo']
             },
             koha_opac: {
                 nombre: 'Koha - Catálogo Público',
@@ -529,18 +539,18 @@
                 url: 'koha-opac-auto-login.html',
                 useAutoLogin: true,
                 type: 'page',
-                roles: ['estudiante', 'administrador', 'orientador']
+                roles: ['estudiante', 'administrador', 'orientador', 'profesor', 'psicologo']
             },
             koha_staff: {
                 nombre: 'Koha - Staff Interface',
-                descripcion: 'Sistema de Gestión Bibliotecaria (Administradores)',
+                descripcion: 'Sistema de Gestión Bibliotecaria',
                 icon: 'fa-user-cog',
                 clase: 'koha',
                 btnClass: 'btn-koha',
                 url: 'koha-auto-login.html',
                 useAutoLogin: true,
                 type: 'page',
-                roles: ['administrador']
+                roles: ['administrador', 'profesor']
             },
             admin: {
                 nombre: 'Administrar Usuarios',
@@ -584,7 +594,7 @@
                 url: 'gestionar-citas-orientador.html',
                 useAutoLogin: false,
                 type: 'navigate',
-                roles: ['orientador', 'administrador']
+                roles: ['orientador', 'psicologo', 'administrador']
             },
             admin_citas: {
                 nombre: 'Administrar Citas',
@@ -637,6 +647,12 @@
             } else if (usuario.tipo === 'orientador') {
                 userBadge.textContent = 'Orientador';
                 userBadge.className = 'user-badge badge-orientador';
+            } else if (usuario.tipo === 'psicologo') {
+                userBadge.textContent = 'Psicólogo/Orientador';
+                userBadge.className = 'user-badge badge-psicologo';
+            } else if (usuario.tipo === 'profesor') {
+                userBadge.textContent = 'Profesor';
+                userBadge.className = 'user-badge badge-profesor';
             }
         }
 

@@ -228,6 +228,36 @@
             text-transform: uppercase;
         }
 
+        .badge-profesor {
+            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-psicologo {
+            background: linear-gradient(135deg, #7B1FA2 0%, #4A148C 100%);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-orientador {
+            background: linear-gradient(135deg, #7B1FA2 0%, #4A148C 100%);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
         .btn-action {
             padding: 8px 15px;
             border-radius: 4px;
@@ -589,6 +619,8 @@
                             <option value="">Seleccionar tipo...</option>
                             <option value="administrador">Administrador</option>
                             <option value="estudiante">Estudiante</option>
+                            <option value="profesor">Profesor</option>
+                            <option value="psicologo">Psicólogo/Orientador</option>
                         </select>
                     </div>
 
@@ -872,11 +904,25 @@
             const tipo = document.getElementById('tipo').value;
 
             if (tipo === 'administrador') {
+                // Administrador: Acceso completo a todo
                 document.getElementById('priv_dspace').checked = true;
                 document.getElementById('priv_koha_opac').checked = true;
                 document.getElementById('priv_koha_staff').checked = true;
                 document.getElementById('priv_admin').checked = true;
             } else if (tipo === 'estudiante') {
+                // Estudiante: Solo consulta de recursos
+                document.getElementById('priv_dspace').checked = true;
+                document.getElementById('priv_koha_opac').checked = true;
+                document.getElementById('priv_koha_staff').checked = false;
+                document.getElementById('priv_admin').checked = false;
+            } else if (tipo === 'profesor') {
+                // Profesor: Acceso a recursos y gestión bibliotecaria
+                document.getElementById('priv_dspace').checked = true;
+                document.getElementById('priv_koha_opac').checked = true;
+                document.getElementById('priv_koha_staff').checked = true;
+                document.getElementById('priv_admin').checked = false;
+            } else if (tipo === 'psicologo') {
+                // Psicólogo/Orientador: Acceso a recursos y sistema de citas
                 document.getElementById('priv_dspace').checked = true;
                 document.getElementById('priv_koha_opac').checked = true;
                 document.getElementById('priv_koha_staff').checked = false;

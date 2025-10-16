@@ -59,6 +59,7 @@ const session = require('express-session');
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const FormData = require('form-data');
+const rateLimit = require('express-rate-limit');
 
 // Importar módulos de base de datos y rutas
 const { verificarConexion, query } = require('./db');
@@ -77,7 +78,8 @@ const allowedOrigins = [
     'http://localhost:8080',
     'http://172.27.72.64:8080',
     'http://localhost:8101',
-    'http://172.27.72.64:8101'
+    'http://172.27.72.64:8101',
+    'https://bolshevistically-prototypal-dorris.ngrok-free.dev'
 ];
 
 app.use(cors({
@@ -95,6 +97,29 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// ============================================================================
+// SECURITY HEADERS - Protección adicional
+// ============================================================================
+app.use((req, res, next) => {
+    // Prevenir clickjacking - solo permitir frames del mismo origen
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+
+    // Prevenir MIME type sniffing
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    // Habilitar protección XSS del navegador
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+
+    // Controlar información del referer
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+    // Deshabilitar funcionalidades peligrosas del navegador
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+    next();
+});
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
     resave: false,
@@ -106,6 +131,41 @@ app.use(session({
         sameSite: 'lax' // Protección adicional contra CSRF
     }
 }));
+
+// ============================================================================
+// RATE LIMITING - Protección contra ataques de fuerza bruta
+// ============================================================================
+
+// Rate limiter general para todas las rutas API
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 100, // 100 requests por IP cada 15 minutos
+    message: 'Demasiadas solicitudes desde esta IP, intenta más tarde',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Rate limiter estricto para login (prevenir brute force)
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 5, // Solo 5 intentos de login cada 15 minutos
+    skipSuccessfulRequests: true, // No contar logins exitosos
+    message: 'Demasiados intentos de login fallidos, intenta en 15 minutos',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Rate limiter para password reset (prevenir abuso)
+const passwordResetLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hora
+    max: 3, // Solo 3 solicitudes por hora
+    message: 'Demasiadas solicitudes de recuperación de contraseña, intenta en 1 hora',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Aplicar rate limiter general a todas las rutas API
+app.use('/api/', generalLimiter);
 
 // Integrar rutas del módulo de orientación educativa (citas)
 app.use('/api', citasRoutes);
@@ -121,6 +181,95 @@ function mapearPrivilegios(usuarioDB) {
         koha_opac: usuarioDB.priv_koha_opac || false,
         admin: usuarioDB.priv_admin || false
     };
+}
+
+// ============================================================================
+// HELPER: Validar contraseña fuerte
+// ============================================================================
+function validarPasswordFuerte(password) {
+    // Política de contraseñas:
+    // - Mínimo 12 caracteres
+    // - Al menos una mayúscula
+    // - Al menos una minúscula
+    // - Al menos un número
+    // - Al menos un carácter especial
+
+    const errors = [];
+
+    if (password.length < 12) {
+        errors.push('mínimo 12 caracteres');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+        errors.push('al menos una mayúscula');
+    }
+
+    if (!/[a-z]/.test(password)) {
+        errors.push('al menos una minúscula');
+    }
+
+    if (!/[0-9]/.test(password)) {
+        errors.push('al menos un número');
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        errors.push('al menos un carácter especial (!@#$%^&*...)');
+    }
+
+    return {
+        valid: errors.length === 0,
+        errors: errors,
+        message: errors.length > 0
+            ? `La contraseña debe tener: ${errors.join(', ')}`
+            : 'Contraseña válida'
+    };
+}
+
+// ============================================================================
+// SISTEMA DE AUDITORÍA
+// ============================================================================
+async function registrarAuditoria(params) {
+    const {
+        usuario_id = null,
+        email = null,
+        accion,
+        entidad = null,
+        entidad_id = null,
+        detalles = null,
+        ip_address = null,
+        user_agent = null,
+        resultado = 'success'
+    } = params;
+
+    try {
+        await query(
+            `INSERT INTO audit_log
+             (usuario_id, email, accion, entidad, entidad_id, detalles, ip_address, user_agent, resultado)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+                usuario_id,
+                email,
+                accion,
+                entidad,
+                entidad_id,
+                detalles ? JSON.stringify(detalles) : null,
+                ip_address,
+                user_agent,
+                resultado
+            ]
+        );
+    } catch (error) {
+        // No fallar si la auditoría falla, solo registrar error
+        console.error('Error al registrar auditoría:', error.message);
+    }
+}
+
+// Helper para obtener IP del request
+function getClientIP(req) {
+    return req.headers['x-forwarded-for']?.split(',')[0] ||
+           req.connection.remoteAddress ||
+           req.socket.remoteAddress ||
+           null;
 }
 
 // ============================================================================
@@ -228,8 +377,8 @@ async function autenticarKoha(userid, password) {
     }
 }
 
-// Endpoint: Login centralizado
-app.post('/api/login', async (req, res) => {
+// Endpoint: Login centralizado (con rate limiting estricto)
+app.post('/api/login', loginLimiter, async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -246,7 +395,28 @@ app.post('/api/login', async (req, res) => {
             [email]
         );
 
-        if (result.rows.length === 0) {
+        // Hash dummy para prevenir timing attacks
+        // Siempre ejecutamos bcrypt.compare incluso si el usuario no existe
+        const dummyHash = '$2b$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234';
+        const passwordHash = result.rows.length > 0 ? result.rows[0].password_hash : dummyHash;
+
+        // SIEMPRE ejecutar bcrypt.compare (tiempo constante)
+        const passwordValida = await bcrypt.compare(password, passwordHash);
+
+        // Verificar si usuario existe Y contraseña es válida
+        if (result.rows.length === 0 || !passwordValida) {
+            // Registrar intento de login fallido
+            await registrarAuditoria({
+                email: email,
+                accion: 'login_failed',
+                entidad: 'session',
+                detalles: { reason: 'invalid_credentials' },
+                ip_address: getClientIP(req),
+                user_agent: req.headers['user-agent'],
+                resultado: 'failure'
+            });
+
+            // Mismo mensaje en ambos casos (prevenir enumeración de usuarios)
             return res.status(401).json({
                 success: false,
                 message: 'Credenciales inválidas'
@@ -254,16 +424,6 @@ app.post('/api/login', async (req, res) => {
         }
 
         const usuarioDB = result.rows[0];
-
-        // Verificar contraseña con bcrypt
-        const passwordValida = await verificarPassword(password, usuarioDB.password_hash);
-
-        if (!passwordValida) {
-            return res.status(401).json({
-                success: false,
-                message: 'Credenciales inválidas'
-            });
-        }
 
         // Mapear privilegios desde BD
         const privilegios = mapearPrivilegios(usuarioDB);
@@ -305,6 +465,25 @@ app.post('/api/login', async (req, res) => {
             'UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = $1',
             [usuarioDB.id]
         );
+
+        // Registrar login exitoso
+        await registrarAuditoria({
+            usuario_id: usuarioDB.id,
+            email: usuarioDB.email,
+            accion: 'login',
+            entidad: 'session',
+            detalles: {
+                tipo: usuarioDB.tipo,
+                sistemas: {
+                    dspace: privilegios.dspace,
+                    koha_staff: privilegios.koha_staff,
+                    koha_opac: privilegios.koha_opac
+                }
+            },
+            ip_address: getClientIP(req),
+            user_agent: req.headers['user-agent'],
+            resultado: 'success'
+        });
 
         // Responder con información del usuario y tokens
         res.json({
@@ -359,6 +538,8 @@ app.get('/api/session', (req, res) => {
 
 // Endpoint: Logout (Sincronizado con DSpace)
 app.post('/api/logout', async (req, res) => {
+    const usuario = req.session.usuario;
+
     // Intentar cerrar sesión en DSpace si hay token
     if (req.session.dspaceToken) {
         try {
@@ -370,6 +551,19 @@ app.post('/api/logout', async (req, res) => {
         } catch (error) {
             console.log('Error al cerrar sesión en DSpace:', error.message);
         }
+    }
+
+    // Registrar logout
+    if (usuario) {
+        await registrarAuditoria({
+            usuario_id: usuario.id,
+            email: usuario.email,
+            accion: 'logout',
+            entidad: 'session',
+            ip_address: getClientIP(req),
+            user_agent: req.headers['user-agent'],
+            resultado: 'success'
+        });
     }
 
     // Destruir sesión del panel
@@ -534,6 +728,15 @@ app.post('/api/usuarios', verificarAutenticacion, verificarAdmin, async (req, re
             });
         }
 
+        // Validar contraseña fuerte
+        const passwordValidation = validarPasswordFuerte(password);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({
+                success: false,
+                message: passwordValidation.message
+            });
+        }
+
         // Verificar que el email no exista
         const checkEmail = await query('SELECT id FROM usuarios WHERE email = $1', [email]);
         if (checkEmail.rows.length > 0) {
@@ -646,6 +849,15 @@ app.put('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (req,
         if (activo !== undefined) { updates.push(`activo = $${paramCounter++}`); values.push(activo); }
 
         if (password) {
+            // Validar contraseña fuerte
+            const passwordValidation = validarPasswordFuerte(password);
+            if (!passwordValidation.valid) {
+                return res.status(400).json({
+                    success: false,
+                    message: passwordValidation.message
+                });
+            }
+
             const passwordHash = await bcrypt.hash(password, 10);
             updates.push(`password_hash = $${paramCounter++}`);
             values.push(passwordHash);
@@ -744,8 +956,8 @@ app.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (r
 // ENDPOINTS DE RECUPERACIÓN DE CONTRASEÑA
 // ============================================================================
 
-// POST /api/password-reset/request - Solicitar recuperación de contraseña
-app.post('/api/password-reset/request', async (req, res) => {
+// POST /api/password-reset/request - Solicitar recuperación de contraseña (con rate limiting)
+app.post('/api/password-reset/request', passwordResetLimiter, async (req, res) => {
     try {
         const { email } = req.body;
 
@@ -776,6 +988,29 @@ app.post('/api/password-reset/request', async (req, res) => {
 
         const usuario = result.rows[0];
 
+        // 1. Invalidar tokens anteriores del mismo usuario (seguridad)
+        await query(
+            'UPDATE password_reset_tokens SET usado = true WHERE usuario_id = $1 AND usado = false',
+            [usuario.id]
+        );
+
+        // 2. Verificar cantidad de tokens activos recientes (prevenir abuso)
+        const tokensRecientes = await query(
+            `SELECT COUNT(*) as count FROM password_reset_tokens
+             WHERE usuario_id = $1
+             AND creado_en > NOW() - INTERVAL '1 hour'`,
+            [usuario.id]
+        );
+
+        if (tokensRecientes.rows[0].count >= 5) {
+            return res.json({
+                success: true,
+                message: 'Si el email existe, se ha generado un enlace de recuperación',
+                token: null,
+                enlace: null
+            });
+        }
+
         // Generar token UUID
         const crypto = require('crypto');
         const token = crypto.randomUUID();
@@ -794,9 +1029,11 @@ app.post('/api/password-reset/request', async (req, res) => {
         const baseUrl = process.env.BASE_URL || 'http://localhost:8088';
         const enlaceRecuperacion = `${baseUrl}/reset-password.html?token=${token}`;
 
-        console.log(`✅ Token de recuperación generado para: ${email}`);
-        console.log(`   Token: ${token}`);
-        console.log(`   Expira: ${expiraEn.toISOString()}`);
+        // Log seguro en producción (no exponer tokens)
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ Token de recuperación generado para: ${email}`);
+            console.log(`   Expira: ${expiraEn.toISOString()}`);
+        }
 
         res.json({
             success: true,
@@ -881,11 +1118,12 @@ app.post('/api/password-reset/reset', async (req, res) => {
             });
         }
 
-        // Validar longitud de contraseña
-        if (nueva_password.length < 6) {
+        // Validar contraseña fuerte
+        const passwordValidation = validarPasswordFuerte(nueva_password);
+        if (!passwordValidation.valid) {
             return res.status(400).json({
                 success: false,
-                message: 'La contraseña debe tener al menos 6 caracteres'
+                message: passwordValidation.message
             });
         }
 
@@ -923,7 +1161,26 @@ app.post('/api/password-reset/reset', async (req, res) => {
             [tokenData.id]
         );
 
-        console.log(`✅ Contraseña actualizada para usuario ID: ${tokenData.usuario_id}`);
+        // Obtener email del usuario
+        const userResult = await query('SELECT email FROM usuarios WHERE id = $1', [tokenData.usuario_id]);
+
+        // Registrar cambio de contraseña
+        await registrarAuditoria({
+            usuario_id: tokenData.usuario_id,
+            email: userResult.rows[0]?.email,
+            accion: 'password_reset',
+            entidad: 'usuario',
+            entidad_id: tokenData.usuario_id,
+            detalles: { method: 'token' },
+            ip_address: getClientIP(req),
+            user_agent: req.headers['user-agent'],
+            resultado: 'success'
+        });
+
+        // Log seguro (no exponer IDs en producción)
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ Contraseña actualizada para usuario ID: ${tokenData.usuario_id}`);
+        }
 
         res.json({
             success: true,
