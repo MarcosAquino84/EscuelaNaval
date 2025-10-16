@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Citas - Orientador | HENM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-guinda: #9D2449;
+            --color-guinda-oscuro: #7a1c38;
+            --color-verde: #2E7D32;
+            --color-verde-oscuro: #1b5e20;
+            --color-dorado: #D4AF37;
+            --color-azul: #1976D2;
+            --color-gris: #757575;
+            --color-gris-claro: #f5f5f5;
+        }
+
+        * {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--color-guinda) 0%, var(--color-verde) 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .header-section h1 {
+            color: var(--color-guinda);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header-section .subtitle {
+            color: var(--color-gris);
+            font-size: 1.1rem;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.pendientes .icon { color: #FF9800; }
+        .stat-card.aceptadas .icon { color: var(--color-verde); }
+        .stat-card.completadas .icon { color: var(--color-azul); }
+        .stat-card.hoy .icon { color: var(--color-guinda); }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-guinda);
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            color: var(--color-gris);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .tabs-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid var(--color-gris-claro);
+            margin-bottom: 25px;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--color-gris);
+            border: none;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--color-guinda);
+            border-color: transparent;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--color-guinda);
+            background-color: transparent;
+            border: none;
+            border-bottom: 3px solid var(--color-guinda);
+        }
+
+        .citas-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .cita-card {
+            background: white;
+            border-left: 5px solid;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .cita-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            transform: translateX(5px);
+        }
+
+        .cita-card.pendiente { border-left-color: #FF9800; }
+        .cita-card.aceptada { border-left-color: var(--color-verde); }
+        .cita-card.completada { border-left-color: var(--color-azul); }
+        .cita-card.propuesta_alternativa { border-left-color: #9C27B0; }
+
+        .cita-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .estudiante-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .estudiante-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-guinda), var(--color-verde));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .estudiante-detalles h5 {
+            margin: 0;
+            color: var(--color-guinda);
+            font-weight: 600;
+        }
+
+        .estudiante-detalles p {
+            margin: 0;
+            color: var(--color-gris);
+            font-size: 0.9rem;
+        }
+
+        .estado-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .estado-pendiente {
+            background-color: #FFF3E0;
+            color: #E65100;
+        }
+
+        .estado-aceptada {
+            background-color: #E8F5E9;
+            color: #1B5E20;
+        }
+
+        .estado-completada {
+            background-color: #E3F2FD;
+            color: #0D47A1;
+        }
+
+        .estado-propuesta {
+            background-color: #F3E5F5;
+            color: #4A148C;
+        }
+
+        .cita-detalles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detalle-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detalle-item i {
+            color: var(--color-guinda);
+            font-size: 1.2rem;
+            width: 25px;
+        }
+
+        .detalle-item .label {
+            font-weight: 600;
+            color: var(--color-gris);
+            font-size: 0.85rem;
+        }
+
+        .detalle-item .value {
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .motivo-section, .notas-section {
+            background-color: var(--color-gris-claro);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .motivo-section h6, .notas-section h6 {
+            color: var(--color-guinda);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .motivo-section p, .notas-section p {
+            margin: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .acciones-cita {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-accion {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-aceptar {
+            background-color: var(--color-verde);
+            color: white;
+        }
+
+        .btn-aceptar:hover {
+            background-color: var(--color-verde-oscuro);
+        }
+
+        .btn-rechazar {
+            background-color: #D32F2F;
+            color: white;
+        }
+
+        .btn-rechazar:hover {
+            background-color: #B71C1C;
+        }
+
+        .btn-proponer {
+            background-color: #9C27B0;
+            color: white;
+        }
+
+        .btn-proponer:hover {
+            background-color: #7B1FA2;
+        }
+
+        .btn-completar {
+            background-color: var(--color-azul);
+            color: white;
+        }
+
+        .btn-completar:hover {
+            background-color: #1565C0;
+        }
+
+        .btn-notas {
+            background-color: var(--color-dorado);
+            color: white;
+        }
+
+        .btn-notas:hover {
+            background-color: #C5A028;
+        }
+
+        .btn-volver {
+            background-color: var(--color-guinda);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .btn-volver:hover {
+            background-color: var(--color-guinda-oscuro);
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--color-gris);
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h4 {
+            color: var(--color-gris);
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-guinda), var(--color-verde));
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 20px 30px;
+        }
+
+        .modal-header h5 {
+            font-weight: 700;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--color-guinda);
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--color-gris-claro);
+            border-radius: 8px;
+            padding: 10px 15px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-guinda);
+            box-shadow: 0 0 0 0.2rem rgba(157, 36, 73, 0.25);
+        }
+
+        .btn-primary-custom {
+            background-color: var(--color-guinda);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--color-guinda-oscuro);
+        }
+
+        .btn-secondary-custom {
+            background-color: var(--color-gris);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cita-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .cita-detalles {
+                grid-template-columns: 1fr;
+            }
+
+            .acciones-cita {
+                flex-direction: column;
+            }
+
+            .btn-accion {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Botón Volver -->
+        <a href="dashboard.html" class="btn-volver">
+            <i class="fas fa-arrow-left"></i>
+            Volver al Panel
+        </a>
+
+        <!-- Header -->
+        <div class="header-section">
+            <h1><i class="fas fa-calendar-check"></i> Gestión de Citas</h1>
+            <p class="subtitle">Panel de orientador - Gestiona tus citas con estudiantes</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-container">
+            <div class="stat-card pendientes">
+                <div class="icon"><i class="fas fa-clock"></i></div>
+                <div class="number" id="stat-pendientes">0</div>
+                <div class="label">Pendientes</div>
+            </div>
+            <div class="stat-card aceptadas">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="number" id="stat-aceptadas">0</div>
+                <div class="label">Aceptadas</div>
+            </div>
+            <div class="stat-card hoy">
+                <div class="icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="number" id="stat-hoy">0</div>
+                <div class="label">Hoy</div>
+            </div>
+            <div class="stat-card completadas">
+                <div class="icon"><i class="fas fa-star"></i></div>
+                <div class="number" id="stat-completadas">0</div>
+                <div class="label">Completadas</div>
+            </div>
+        </div>
+
+        <!-- Tabs y Contenido -->
+        <div class="tabs-section">
+            <ul class="nav nav-tabs" id="citasTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pendientes-tab" data-bs-toggle="tab"
+                            data-bs-target="#pendientes" type="button" role="tab">
+                        <i class="fas fa-clock"></i> Pendientes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="aceptadas-tab" data-bs-toggle="tab"
+                            data-bs-target="#aceptadas" type="button" role="tab">
+                        <i class="fas fa-check-circle"></i> Aceptadas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="completadas-tab" data-bs-toggle="tab"
+                            data-bs-target="#completadas" type="button" role="tab">
+                        <i class="fas fa-star"></i> Completadas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="todas-tab" data-bs-toggle="tab"
+                            data-bs-target="#todas" type="button" role="tab">
+                        <i class="fas fa-list"></i> Todas
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="citasTabContent">
+                <!-- Pendientes -->
+                <div class="tab-pane fade show active" id="pendientes" role="tabpanel">
+                    <div class="citas-container" id="citas-pendientes">
+                        <!-- Se llenarán con JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Aceptadas -->
+                <div class="tab-pane fade" id="aceptadas" role="tabpanel">
+                    <div class="citas-container" id="citas-aceptadas">
+                        <!-- Se llenarán con JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Completadas -->
+                <div class="tab-pane fade" id="completadas" role="tabpanel">
+                    <div class="citas-container" id="citas-completadas">
+                        <!-- Se llenarán con JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Todas -->
+                <div class="tab-pane fade" id="todas" role="tabpanel">
+                    <div class="citas-container" id="citas-todas">
+                        <!-- Se llenarán con JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Proponer Fecha -->
+    <div class="modal fade" id="modalProponerFecha" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-calendar-alt"></i> Proponer Fecha Alternativa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formProponerFecha">
+                        <input type="hidden" id="proponer-cita-id">
+
+                        <div class="mb-3">
+                            <label for="proponer-fecha" class="form-label">
+                                <i class="fas fa-calendar"></i> Nueva Fecha y Hora
+                            </label>
+                            <input type="datetime-local" class="form-control" id="proponer-fecha" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="proponer-motivo" class="form-label">
+                                <i class="fas fa-comment"></i> Motivo del Cambio
+                            </label>
+                            <textarea class="form-control" id="proponer-motivo" rows="3"
+                                      placeholder="Explica por qué propones esta nueva fecha..." required></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="fas fa-paper-plane"></i> Enviar Propuesta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Notas -->
+    <div class="modal fade" id="modalAgregarNotas" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-sticky-note"></i> Agregar Notas a la Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAgregarNotas">
+                        <input type="hidden" id="notas-cita-id">
+
+                        <div class="mb-3">
+                            <label for="notas-orientador" class="form-label">
+                                <i class="fas fa-edit"></i> Notas del Orientador
+                            </label>
+                            <textarea class="form-control" id="notas-orientador" rows="6"
+                                      placeholder="Agrega observaciones, recomendaciones o notas sobre la cita..." required></textarea>
+                            <small class="text-muted">
+                                Estas notas serán visibles para el estudiante
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="fas fa-save"></i> Guardar Notas
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const AUTH_API = '/api';
+        let todasLasCitas = [];
+
+        // Cargar citas al inicio
+        document.addEventListener('DOMContentLoaded', function() {
+            verificarAutenticacion();
+            cargarCitas();
+        });
+
+        // Verificar autenticación y rol
+        async function verificarAutenticacion() {
+            try {
+                const response = await fetch('/api/check-auth', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Verificar que sea orientador o administrador
+                if (data.tipo !== 'orientador' && data.tipo !== 'administrador') {
+                    alert('No tienes permisos para acceder a esta página');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Error verificando autenticación:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Cargar todas las citas
+        async function cargarCitas() {
+            try {
+                const response = await fetch(`${AUTH_API}/citas/mis-citas`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar citas');
+                }
+
+                const data = await response.json();
+                todasLasCitas = data.citas;
+
+                actualizarEstadisticas();
+                mostrarCitasPorEstado();
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error al cargar las citas');
+            }
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas() {
+            const pendientes = todasLasCitas.filter(c => c.estado === 'pendiente' || c.estado === 'propuesta_alternativa').length;
+            const aceptadas = todasLasCitas.filter(c => c.estado === 'aceptada').length;
+            const completadas = todasLasCitas.filter(c => c.estado === 'completada').length;
+
+            // Citas de hoy
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const manana = new Date(hoy);
+            manana.setDate(manana.getDate() + 1);
+
+            const citasHoy = todasLasCitas.filter(c => {
+                const fechaCita = new Date(c.fecha_hora);
+                return fechaCita >= hoy && fechaCita < manana && c.estado === 'aceptada';
+            }).length;
+
+            document.getElementById('stat-pendientes').textContent = pendientes;
+            document.getElementById('stat-aceptadas').textContent = aceptadas;
+            document.getElementById('stat-hoy').textContent = citasHoy;
+            document.getElementById('stat-completadas').textContent = completadas;
+        }
+
+        // Mostrar citas por estado
+        function mostrarCitasPorEstado() {
+            const pendientes = todasLasCitas.filter(c => c.estado === 'pendiente' || c.estado === 'propuesta_alternativa');
+            const aceptadas = todasLasCitas.filter(c => c.estado === 'aceptada');
+            const completadas = todasLasCitas.filter(c => c.estado === 'completada' || c.estado === 'rechazada' || c.estado === 'cancelada');
+
+            mostrarCitas('citas-pendientes', pendientes);
+            mostrarCitas('citas-aceptadas', aceptadas);
+            mostrarCitas('citas-completadas', completadas);
+            mostrarCitas('citas-todas', todasLasCitas);
+        }
+
+        // Mostrar citas en un contenedor
+        function mostrarCitas(containerId, citas) {
+            const container = document.getElementById(containerId);
+
+            if (citas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <h4>No hay citas</h4>
+                        <p>No tienes citas en esta categoría</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = citas.map(cita => crearTarjetaCita(cita)).join('');
+        }
+
+        // Crear tarjeta de cita
+        function crearTarjetaCita(cita) {
+            const estadosMap = {
+                'pendiente': { texto: 'Pendiente', clase: 'estado-pendiente' },
+                'aceptada': { texto: 'Aceptada', clase: 'estado-aceptada' },
+                'completada': { texto: 'Completada', clase: 'estado-completada' },
+                'rechazada': { texto: 'Rechazada', clase: 'estado-rechazada' },
+                'propuesta_alternativa': { texto: 'Propuesta Enviada', clase: 'estado-propuesta' },
+                'cancelada': { texto: 'Cancelada', clase: 'estado-rechazada' }
+            };
+
+            const estado = estadosMap[cita.estado] || { texto: cita.estado, clase: '' };
+            const iniciales = cita.estudiante_nombre ? cita.estudiante_nombre.split(' ').map(n => n[0]).join('').substring(0, 2) : 'ES';
+
+            const fechaFormateada = new Date(cita.fecha_hora).toLocaleString('es-MX', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const modalidadIconos = {
+                'presencial': 'fa-building',
+                'virtual': 'fa-video',
+                'telefonica': 'fa-phone'
+            };
+
+            let acciones = '';
+
+            if (cita.estado === 'pendiente') {
+                acciones = `
+                    <button class="btn-accion btn-aceptar" onclick="aceptarCita(${cita.id})">
+                        <i class="fas fa-check"></i> Aceptar
+                    </button>
+                    <button class="btn-accion btn-proponer" onclick="abrirModalProponer(${cita.id})">
+                        <i class="fas fa-calendar-alt"></i> Proponer Fecha
+                    </button>
+                    <button class="btn-accion btn-rechazar" onclick="rechazarCita(${cita.id})">
+                        <i class="fas fa-times"></i> Rechazar
+                    </button>
+                `;
+            } else if (cita.estado === 'aceptada') {
+                acciones = `
+                    <button class="btn-accion btn-completar" onclick="completarCita(${cita.id})">
+                        <i class="fas fa-check-double"></i> Marcar Completada
+                    </button>
+                    <button class="btn-accion btn-notas" onclick="abrirModalNotas(${cita.id}, '${cita.notas_orientador || ''}')">
+                        <i class="fas fa-sticky-note"></i> ${cita.notas_orientador ? 'Editar' : 'Agregar'} Notas
+                    </button>
+                `;
+            } else if (cita.estado === 'completada' && !cita.notas_orientador) {
+                acciones = `
+                    <button class="btn-accion btn-notas" onclick="abrirModalNotas(${cita.id}, '')">
+                        <i class="fas fa-sticky-note"></i> Agregar Notas
+                    </button>
+                `;
+            }
+
+            return `
+                <div class="cita-card ${cita.estado}">
+                    <div class="cita-header">
+                        <div class="estudiante-info">
+                            <div class="estudiante-avatar">${iniciales}</div>
+                            <div class="estudiante-detalles">
+                                <h5>${cita.estudiante_nombre || 'Estudiante'}</h5>
+                                <p>${cita.estudiante_email || ''}</p>
+                            </div>
+                        </div>
+                        <span class="estado-badge ${estado.clase}">${estado.texto}</span>
+                    </div>
+
+                    <div class="cita-detalles">
+                        <div class="detalle-item">
+                            <i class="fas fa-calendar"></i>
+                            <div>
+                                <div class="label">Fecha y Hora</div>
+                                <div class="value">${fechaFormateada}</div>
+                            </div>
+                        </div>
+                        <div class="detalle-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <div class="label">Duración</div>
+                                <div class="value">${cita.duracion_minutos} minutos</div>
+                            </div>
+                        </div>
+                        <div class="detalle-item">
+                            <i class="fas ${modalidadIconos[cita.modalidad] || 'fa-question'}"></i>
+                            <div>
+                                <div class="label">Modalidad</div>
+                                <div class="value">${cita.modalidad}</div>
+                            </div>
+                        </div>
+                        ${cita.ubicacion ? `
+                        <div class="detalle-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <div class="label">Ubicación</div>
+                                <div class="value">${cita.ubicacion}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="motivo-section">
+                        <h6><i class="fas fa-comment-dots"></i> Motivo de la Cita</h6>
+                        <p><strong>${cita.motivo}</strong></p>
+                        ${cita.descripcion_estudiante ? `<p>${cita.descripcion_estudiante}</p>` : ''}
+                    </div>
+
+                    ${cita.notas_orientador ? `
+                    <div class="notas-section">
+                        <h6><i class="fas fa-sticky-note"></i> Notas del Orientador</h6>
+                        <p>${cita.notas_orientador}</p>
+                    </div>
+                    ` : ''}
+
+                    ${acciones ? `
+                    <div class="acciones-cita">
+                        ${acciones}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Aceptar cita
+        async function aceptarCita(id) {
+            if (!confirm('¿Confirmas que puedes atender esta cita en la fecha y hora solicitada?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${AUTH_API}/citas/${id}/aceptar`, {
+                    method: 'PUT',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al aceptar la cita');
+                }
+
+                alert('Cita aceptada exitosamente');
+                cargarCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al aceptar la cita');
+            }
+        }
+
+        // Rechazar cita
+        async function rechazarCita(id) {
+            const motivo = prompt('Por favor indica el motivo del rechazo:');
+            if (!motivo) return;
+
+            try {
+                const response = await fetch(`${AUTH_API}/citas/${id}/rechazar`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ motivo_rechazo: motivo })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al rechazar la cita');
+                }
+
+                alert('Cita rechazada');
+                cargarCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al rechazar la cita');
+            }
+        }
+
+        // Completar cita
+        async function completarCita(id) {
+            if (!confirm('¿Marcar esta cita como completada?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${AUTH_API}/citas/${id}/completar`, {
+                    method: 'PUT',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al completar la cita');
+                }
+
+                alert('Cita marcada como completada');
+                cargarCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al completar la cita');
+            }
+        }
+
+        // Modal proponer fecha
+        function abrirModalProponer(citaId) {
+            document.getElementById('proponer-cita-id').value = citaId;
+
+            // Establecer fecha mínima (mañana)
+            const manana = new Date();
+            manana.setDate(manana.getDate() + 1);
+            manana.setHours(8, 0, 0, 0);
+            document.getElementById('proponer-fecha').min = manana.toISOString().slice(0, 16);
+
+            const modal = new bootstrap.Modal(document.getElementById('modalProponerFecha'));
+            modal.show();
+        }
+
+        document.getElementById('formProponerFecha').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const citaId = document.getElementById('proponer-cita-id').value;
+            const fechaHora = document.getElementById('proponer-fecha').value;
+            const motivo = document.getElementById('proponer-motivo').value;
+
+            try {
+                const response = await fetch(`${AUTH_API}/citas/${citaId}/proponer-fecha`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fecha_hora_propuesta: fechaHora,
+                        notas: motivo
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al proponer fecha');
+                }
+
+                alert('Propuesta de fecha enviada al estudiante');
+                bootstrap.Modal.getInstance(document.getElementById('modalProponerFecha')).hide();
+                this.reset();
+                cargarCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar la propuesta');
+            }
+        });
+
+        // Modal agregar notas
+        function abrirModalNotas(citaId, notasActuales) {
+            document.getElementById('notas-cita-id').value = citaId;
+            document.getElementById('notas-orientador').value = notasActuales;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalAgregarNotas'));
+            modal.show();
+        }
+
+        document.getElementById('formAgregarNotas').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const citaId = document.getElementById('notas-cita-id').value;
+            const notas = document.getElementById('notas-orientador').value;
+
+            try {
+                const response = await fetch(`${AUTH_API}/citas/${citaId}/notas`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notas_orientador: notas })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al guardar notas');
+                }
+
+                alert('Notas guardadas exitosamente');
+                bootstrap.Modal.getInstance(document.getElementById('modalAgregarNotas')).hide();
+                this.reset();
+                cargarCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al guardar las notas');
+            }
+        });
+
+        function mostrarError(mensaje) {
+            alert(mensaje);
+        }
+    </script>
+</body>
+</html>

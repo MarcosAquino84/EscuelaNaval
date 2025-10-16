@@ -156,6 +156,11 @@
             color: white;
         }
 
+        .badge-orientador {
+            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+            color: white;
+        }
+
         .btn-logout {
             padding: 10px 25px;
             border-radius: 4px;
@@ -218,6 +223,10 @@
             border-top-color: var(--primary-color);
         }
 
+        .system-card.admin {
+            border-top-color: var(--accent-gold);
+        }
+
         .system-card i {
             font-size: 70px;
             margin-bottom: 20px;
@@ -229,6 +238,10 @@
 
         .system-card.koha i {
             color: var(--primary-color);
+        }
+
+        .system-card.admin i {
+            color: var(--accent-gold);
         }
 
         .system-card h3 {
@@ -281,6 +294,20 @@
             border-color: var(--accent-gold);
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(157, 36, 73, 0.3);
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #C4A137 100%);
+            border-color: var(--accent-gold);
+            color: var(--text-dark);
+        }
+
+        .btn-admin:hover {
+            background: linear-gradient(135deg, #C4A137 0%, var(--accent-gold) 100%);
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+            color: white;
         }
 
         .access-info {
@@ -477,7 +504,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const AUTH_API = 'http://localhost:3000/api';
+        const AUTH_API = '/api';
         console.log('Dashboard loaded');
 
         // Configuración de sistemas
@@ -490,7 +517,8 @@
                 btnClass: 'btn-dspace',
                 url: 'dspace-auto-login.html',
                 useAutoLogin: true,
-                type: 'iframe'
+                type: 'page',
+                roles: ['estudiante', 'administrador']
             },
             koha_opac: {
                 nombre: 'Koha - Catálogo Público',
@@ -500,7 +528,8 @@
                 btnClass: 'btn-koha',
                 url: 'koha-opac-auto-login.html',
                 useAutoLogin: true,
-                type: 'page'
+                type: 'page',
+                roles: ['estudiante', 'administrador', 'orientador']
             },
             koha_staff: {
                 nombre: 'Koha - Staff Interface',
@@ -510,7 +539,63 @@
                 btnClass: 'btn-koha',
                 url: 'koha-auto-login.html',
                 useAutoLogin: true,
-                type: 'page'
+                type: 'page',
+                roles: ['administrador']
+            },
+            admin: {
+                nombre: 'Administrar Usuarios',
+                descripcion: 'Gestión completa de usuarios del sistema',
+                icon: 'fa-users-cog',
+                clase: 'admin',
+                btnClass: 'btn-admin',
+                url: 'usuarios.html',
+                useAutoLogin: false,
+                type: 'navigate',
+                roles: ['administrador']
+            },
+            solicitar_cita: {
+                nombre: 'Solicitar Cita',
+                descripcion: 'Solicita una cita con orientación educativa',
+                icon: 'fa-calendar-plus',
+                clase: 'dspace',
+                btnClass: 'btn-dspace',
+                url: 'solicitar-cita.html',
+                useAutoLogin: false,
+                type: 'navigate',
+                roles: ['estudiante', 'administrador']
+            },
+            mis_citas: {
+                nombre: 'Mis Citas',
+                descripcion: 'Consulta y gestiona tus citas de orientación',
+                icon: 'fa-calendar-check',
+                clase: 'koha',
+                btnClass: 'btn-koha',
+                url: 'mis-citas.html',
+                useAutoLogin: false,
+                type: 'navigate',
+                roles: ['estudiante', 'administrador']
+            },
+            gestionar_citas_orientador: {
+                nombre: 'Gestionar Citas',
+                descripcion: 'Administra las citas con tus estudiantes',
+                icon: 'fa-calendar-alt',
+                clase: 'koha',
+                btnClass: 'btn-koha',
+                url: 'gestionar-citas-orientador.html',
+                useAutoLogin: false,
+                type: 'navigate',
+                roles: ['orientador', 'administrador']
+            },
+            admin_citas: {
+                nombre: 'Administrar Citas',
+                descripcion: 'Panel administrativo del sistema de citas',
+                icon: 'fa-calendar-week',
+                clase: 'admin',
+                btnClass: 'btn-admin',
+                url: 'admin-citas.html',
+                useAutoLogin: false,
+                type: 'navigate',
+                roles: ['administrador']
             }
         };
 
@@ -549,40 +634,44 @@
             } else if (usuario.tipo === 'estudiante') {
                 userBadge.textContent = 'Estudiante';
                 userBadge.className = 'user-badge badge-estudiante';
+            } else if (usuario.tipo === 'orientador') {
+                userBadge.textContent = 'Orientador';
+                userBadge.className = 'user-badge badge-orientador';
             }
         }
 
         // Cargar sistemas disponibles según privilegios
         function cargarSistemasDisponibles() {
-            const sistemasDisponibles = JSON.parse(sessionStorage.getItem('sistemas_disponibles'));
+            const usuario = JSON.parse(sessionStorage.getItem('usuario'));
             const container = document.getElementById('sistemasContainer');
 
-            if (!sistemasDisponibles) {
-                container.innerHTML = '<p class="text-white">No se pudieron cargar los sistemas disponibles.</p>';
+            if (!usuario) {
+                container.innerHTML = '<p class="text-muted">No se pudieron cargar los sistemas disponibles.</p>';
                 return;
             }
 
+            const userRole = usuario.tipo;
             container.innerHTML = '';
 
-            // Crear tarjeta para cada sistema disponible
-            Object.keys(sistemasDisponibles).forEach(sistemaKey => {
-                if (sistemasDisponibles[sistemaKey] && sistemaKey !== 'admin') {
-                    const sistema = sistemasConfig[sistemaKey];
-                    if (sistema) {
-                        const col = document.createElement('div');
-                        col.className = 'col-md-6';
-                        col.innerHTML = `
-                            <div class="system-card ${sistema.clase}" onclick="accederSistema('${sistemaKey}')">
-                                <i class="fas ${sistema.icon}"></i>
-                                <h3>${sistema.nombre}</h3>
-                                <p>${sistema.descripcion}</p>
-                                <button class="btn btn-access ${sistema.btnClass}">
-                                    <i class="fas fa-arrow-right"></i> Acceder a ${sistema.nombre}
-                                </button>
-                            </div>
-                        `;
-                        container.appendChild(col);
-                    }
+            // Crear tarjeta para cada sistema disponible según el rol
+            Object.keys(sistemasConfig).forEach(sistemaKey => {
+                const sistema = sistemasConfig[sistemaKey];
+
+                // Verificar si el usuario tiene acceso a este sistema
+                if (sistema.roles && sistema.roles.includes(userRole)) {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6';
+                    col.innerHTML = `
+                        <div class="system-card ${sistema.clase}" onclick="accederSistema('${sistemaKey}')">
+                            <i class="fas ${sistema.icon}"></i>
+                            <h3>${sistema.nombre}</h3>
+                            <p>${sistema.descripcion}</p>
+                            <button class="btn btn-access ${sistema.btnClass}">
+                                <i class="fas fa-arrow-right"></i> Acceder a ${sistema.nombre}
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(col);
                 }
             });
         }
@@ -596,18 +685,21 @@
 
             loading.classList.remove('d-none');
             loadingMessage.textContent = `Accediendo a ${config.nombre}...`;
-            loadingSubtext.textContent = 'Autenticando automáticamente...';
 
-            setTimeout(() => {
-                if (config.type === 'redirect') {
-                    // Para Koha: usar proxy que establece cookie y redirige
+            if (config.type === 'navigate') {
+                // Navegación directa en la misma ventana
+                loadingSubtext.textContent = 'Cargando módulo de administración...';
+                setTimeout(() => {
+                    window.location.href = config.url;
+                }, 500);
+            } else {
+                // Auto-login en nueva ventana
+                loadingSubtext.textContent = 'Autenticando automáticamente...';
+                setTimeout(() => {
                     window.open(config.url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                } else {
-                    // Para DSpace u otros: usar página intermedia
-                    window.open(config.url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                }
-                loading.classList.add('d-none');
-            }, 500);
+                    loading.classList.add('d-none');
+                }, 500);
+            }
         }
 
         // Cerrar sesión

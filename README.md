@@ -1,528 +1,442 @@
-# Sistema Integrado de Biblioteca Digital
+# 🎓 Sistema Integrado de Biblioteca Digital HENM
+## Heroica Escuela Naval Militar
 
-[![DSpace](https://img.shields.io/badge/DSpace-7.6-blue.svg)](https://dspace.lyrasis.org/)
-[![Koha](https://img.shields.io/badge/Koha-25.05.04-green.svg)](https://koha-community.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-Sistema completo de gestión bibliotecaria y repositorio institucional digital, con autenticación centralizada (SSO), corriendo en arquitectura híbrida Ubuntu + Docker.
+> Sistema completo de gestión bibliotecaria con SSO (Single Sign-On), repositorio digital, gestión de citas de orientación educativa y diseño institucional.
 
 ---
 
-## 📋 Tabla de Contenidos
+## 📋 Índice
 
-- [Descripción](#-descripción)
-- [Arquitectura](#-arquitectura)
-- [Requisitos](#-requisitos)
-- [Inicio Rápido](#-inicio-rápido)
-- [Acceso al Sistema](#-acceso-al-sistema)
-- [Credenciales](#-credenciales)
-- [Componentes](#-componentes)
-- [Documentación](#-documentación)
-- [Comandos Útiles](#-comandos-útiles)
-- [Solución de Problemas](#-solución-de-problemas)
-- [Contribuir](#-contribuir)
+1. [Descripción General](#descripción-general)
+2. [Arquitectura del Sistema](#arquitectura-del-sistema)
+3. [Componentes Principales](#componentes-principales)
+4. [Base de Datos](#base-de-datos)
+5. [Usuarios del Sistema](#usuarios-del-sistema)
+6. [Funcionalidades](#funcionalidades)
+7. [Tecnologías Utilizadas](#tecnologías-utilizadas)
+8. [Acceso al Sistema](#acceso-al-sistema)
 
 ---
 
-## 🎯 Descripción
+## 🎯 Descripción General
 
-Sistema integrado para bibliotecas que combina:
+Sistema integrado de biblioteca digital que combina:
+- **DSpace 7.x**: Repositorio digital institucional (Docker)
+- **Koha**: Sistema integrado de gestión bibliotecaria - ILS (Ubuntu nativo)
+- **Panel de Administración**: Interfaz unificada con SSO
+- **Módulo de Orientación Educativa**: Gestión de citas con psicólogos/orientadores
+- **Diseño Institucional**: Identidad visual HENM completa
 
-- **DSpace 7.6**: Repositorio institucional digital para preservar y dar acceso a producción académica
-- **Koha 25.05.04**: Sistema integrado de gestión bibliotecaria (ILS) para catalogación, circulación y préstamos
-- **Auth Service**: Servicio de autenticación centralizada (Single Sign-On) para acceso unificado
+### ✨ Características Principales
 
-**Características principales:**
-- ✅ Login único (SSO) para ambos sistemas
-- ✅ Interfaz completamente en español
-- ✅ Arquitectura híbrida: Koha nativo + DSpace en Docker
-- ✅ Panel de administración web integrado
-- ✅ Base de datos PostgreSQL (DSpace) y MariaDB (Koha)
-- ✅ Motores de búsqueda: Solr (DSpace) y Zebra (Koha)
-
----
-
-## 🏗️ Arquitectura
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    SISTEMA DE BIBLIOTECA                        │
-└─────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────┐         ┌──────────────────────┐
-│   KOHA (Nativo)      │         │  DSpace (Docker)     │
-│   Puerto 80          │         │  Puertos 4000/8090   │
-├──────────────────────┤         ├──────────────────────┤
-│ • Apache2 + Perl/CGI │         │ • Angular Frontend   │
-│ • Zebra (búsqueda)   │         │ • Spring Boot API    │
-│ • MariaDB (3307)     │         │ • PostgreSQL (5433)  │
-│ • Background workers │         │ • Solr (8983)        │
-│ • Idioma: es-ES      │         │ • Idioma: es         │
-└──────────┬───────────┘         └──────────┬───────────┘
-           │                                │
-           └────────────┬───────────────────┘
-                        │
-           ┌────────────▼───────────────┐
-           │  Auth Service (Docker)     │
-           │  Puerto 3000               │
-           ├────────────────────────────┤
-           │ • Node.js + Express        │
-           │ • Single Sign-On (SSO)     │
-           │ • Panel Web (8081)         │
-           │ • Gestión de sesiones      │
-           └────────────────────────────┘
-```
-
-Ver [ARQUITECTURA.md](ARQUITECTURA.md) para más detalles.
+- ✅ **Login Centralizado (SSO)**: Un solo login para todos los sistemas
+- ✅ **Auto-Login**: Acceso automático a DSpace y Koha sin credenciales adicionales
+- ✅ **Gestión de Citas**: Sistema completo de orientación educativa
+- ✅ **Diseño Institucional**: Colores, tipografía y elementos gráficos de la HENM
+- ✅ **WSL2 + Windows**: Servicios en WSL, navegación desde Windows
+- ✅ **Publicación Internet**: Acceso público vía Ngrok
 
 ---
 
-## 💻 Requisitos
+## 🏗️ Arquitectura del Sistema
 
-### Sistema Operativo
-- **Ubuntu 22.04 LTS** o superior
-- Arquitectura: x86_64 / AMD64
-- Compatible con WSL2 (Windows Subsystem for Linux)
+### Entorno de Ejecución
 
-### Software
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-- Apache2 (para Koha)
-- MariaDB 10.11+ (para Koha)
-- Node.js 18+ (para Auth Service)
+- **WSL2 Ubuntu 22.04**: Sistema operativo base
+- **Docker + Docker Compose**: DSpace, Auth Service, Admin Panel
+- **Ubuntu Nativo**: Koha con Apache2 y MariaDB
+- **Windows Host**: Navegador para acceder a todos los servicios
+- **Ngrok**: Túnel público para acceso desde Internet
 
-### Hardware Mínimo
-- **CPU**: 4 cores
-- **RAM**: 8 GB (recomendado 16 GB)
-- **Disco**: 20 GB libres
-- **Red**: Conexión a Internet para instalación
+### Diagrama de Componentes
+
+\`\`\`
+Internet (Ngrok) → Nginx Proxy (9000) → Servicios
+                         ├─ / → Admin Panel (:8088)
+                         ├─ /dspace → DSpace Angular (:4000)
+                         ├─ /server → DSpace API (:8090)
+                         ├─ /koha → Koha OPAC (:8080)
+                         ├─ /koha-staff → Koha Staff (:80)
+                         └─ /api → Auth Service (:3000)
+\`\`\`
 
 ---
 
-## 🚀 Inicio Rápido
+## 🧩 Componentes Principales
 
-### 1. Clonar el repositorio
+### 1. DSpace (Repositorio Digital) - DOCKER
+- **Frontend**: Angular 15 (Puerto 4000)
+- **Backend**: Spring Boot + Tomcat (Puerto 8090)
+- **Base de Datos**: PostgreSQL (Puerto 5433)
+- **Búsqueda**: Apache Solr (Puerto 8983)
+- **Cores Solr**: search, authority, oai, statistics
+- **Idioma**: Español
+- **Función**: Repositorio institucional para tesis, artículos, recursos digitales
 
-```bash
-git clone <repository-url>
-cd biblioteca
-```
+### 2. Koha (Sistema Bibliotecario) - UBUNTU NATIVO
+- **Staff Interface**: http://localhost:80
+- **OPAC**: http://localhost:8080
+- **Base de Datos**: MariaDB 10.11 (Puerto 3307)
+- **Cache**: Memcached (Puerto 11212)
+- **Servidor**: Apache2 + Plack
+- **Idioma**: Español
+- **Función**: Catalogación, préstamos, adquisiciones, reportes
 
-### 2. Iniciar servicios
+### 3. Panel de Administración - DOCKER
+- **Framework**: HTML5 + Bootstrap 5 + JavaScript
+- **Servidor**: Nginx (Puerto 8088)
+- **Diseño**: Identidad visual HENM
+- **Funciones**: Dashboard, gestión de usuarios, solicitud de citas
 
-```bash
-# Iniciar DSpace y Auth Service (Docker)
-docker-compose up -d
+### 4. Auth Service (SSO) - DOCKER
+- **Framework**: Node.js + Express
+- **Puerto**: 3000
+- **Base de Datos**: PostgreSQL (biblioteca_auth)
+- **Autenticación**: bcrypt
+- **Funciones**: Login centralizado, gestión de usuarios y citas
 
-# Verificar que Koha esté corriendo (nativo)
-sudo systemctl status apache2
-koha-list
-```
+### 5. Nginx Proxy - DOCKER
+- **Puerto**: 9000
+- **Función**: Proxy reverso unificado
+- **Compatible**: Plan gratuito Ngrok (1 túnel)
 
-### 3. Acceder al sistema
+---
 
-Abre tu navegador y ve a:
+## 💾 Base de Datos
 
-**Desde la misma máquina Ubuntu:**
-```
-http://localhost:8081/login.html
-```
+### PostgreSQL: biblioteca_auth (DSpace container)
 
-**Desde Windows (si usas WSL):**
-```
-http://172.27.72.64:8081/login.html
-```
+**Tablas Principales**:
 
-### 4. Credenciales por defecto
+**usuarios**
+- Todos los usuarios del sistema
+- Tipos: administrador, estudiante, orientador
+- Privilegios granulares por sistema
 
-```
-Email: admin@biblioteca.local
-Password: admin123
-```
+**citas**
+- Gestión de citas de orientación educativa
+- Estados: pendiente, aceptada, rechazada, completada
+- Modalidades: presencial, virtual, telefónica
+
+**disponibilidad_orientadores**
+- Horarios de atención
+- Lunes a Viernes: 9:00-12:00 y 14:00-17:00
+
+**notificaciones**
+- Sistema de alertas para usuarios
+
+**propuestas_fecha**
+- Cambios de horario de citas
+
+### MariaDB: koha_biblioteca (Container MariaDB)
+
+**Tablas Principales**:
+- **borrowers**: Usuarios de la biblioteca
+- **biblio**: Registros bibliográficos
+- **items**: Ejemplares físicos
+- **issues**: Préstamos activos
+- **categories**: Tipos de usuario
+
+### PostgreSQL: dspace (Container DSpace)
+
+~200 tablas para gestión de:
+- Colecciones y comunidades
+- Items y bitstreams
+- Metadata
+- Permisos
+
+---
+
+## 👥 Usuarios del Sistema
+
+### Administradores
+
+| Email | Password | Permisos |
+|-------|----------|----------|
+| admin@biblioteca.local | admin123 | Acceso total |
+| marcos@biblioteca.local | marcos123 | Acceso total |
+
+### Orientadores/Psicólogos
+
+| Email | Password | Especialidad | Horario |
+|-------|----------|--------------|---------|
+| psic.ramirez@henm.edu.mx | orientador123 | Psicología Clínica | L-V 9-12, 14-17 |
+| psic.martinez@henm.edu.mx | orientador123 | Orientación Vocacional | L-V 9-12, 14-17 |
+| psic.lopez@henm.edu.mx | orientador123 | Psicopedagogía | L-V 9-12, 14-17 |
+
+### Estudiantes
+
+| Email | Password |
+|-------|----------|
+| maria.garcia@estudiante.local | estudiante123 |
+| alumno@biblioteca.local | alumno123 |
+
+---
+
+## ⚙️ Funcionalidades
+
+### Sistema de Autenticación (SSO)
+
+#### Login Centralizado
+- Un solo login para todos los sistemas
+- Sesiones persistentes con cookies HTTP-only
+- Contraseñas hasheadas con bcrypt
+- Validación de privilegios por usuario
+
+#### Auto-Login
+- **dspace-auto-login.html**: Autenticación automática en DSpace
+- **koha-auto-login.html**: Login automático en Koha Staff
+- **koha-opac-auto-login.html**: Login automático en OPAC
+
+### Módulo de Orientación Educativa
+
+#### Estudiantes:
+- Solicitar citas con orientadores
+- Ver historial de citas
+- Cancelar citas
+- Recibir notificaciones
+
+#### Orientadores:
+- Gestionar solicitudes de citas
+- Aceptar/rechazar con mensajes
+- Proponer fechas alternativas
+- Marcar citas como completadas
+- Agregar notas públicas y privadas
+
+#### Administradores:
+- Administrar todas las citas
+- Ver estadísticas
+- Gestionar horarios de orientadores
+
+### Panel de Administración
+
+- Dashboard unificado con acceso a todos los sistemas
+- Gestión completa de usuarios (CRUD)
+- Diseño institucional HENM completo:
+  - Colores: Guinda (#9D2449), Verde (#2E7D32), Dorado (#D4AF37)
+  - Tipografía: Montserrat
+  - Headers institucionales (Gobierno de México, HENM)
+  - Footer institucional
+
+### DSpace - Repositorio Digital
+
+- Comunidades y colecciones
+- Depósito de items (tesis, artículos)
+- Metadata Dublin Core
+- Búsqueda avanzada con Solr
+- Permisos granulares
+- Workflows de aprobación
+- OAI-PMH para interoperabilidad
+
+### Koha - Sistema Bibliotecario
+
+**Staff Interface**:
+- Catalogación MARC21
+- Circulación (préstamos, devoluciones)
+- Adquisiciones
+- Gestión de socios
+- Reportes y estadísticas
+
+**OPAC**:
+- Búsqueda simple y avanzada
+- Cuenta personal
+- Renovaciones en línea
+- Reservas
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+### Backend
+- Node.js 18 (Auth Service)
+- Spring Boot (DSpace)
+- Perl/Plack (Koha)
+- PostgreSQL 13
+- MariaDB 10.11
+- Apache Solr 8
+- Memcached
+
+### Frontend
+- Angular 15 (DSpace UI)
+- Bootstrap 5
+- HTML5/CSS3/JavaScript
+- Template Toolkit (Koha)
+- jQuery
+
+### Infraestructura
+- Docker & Docker Compose
+- Nginx (Proxy + Admin Panel)
+- Apache 2.4 (Koha)
+- WSL2 Ubuntu
+- Ngrok
+
+### Seguridad
+- bcrypt (Passwords)
+- express-session
+- CORS configurado
+- HTTPS (Ngrok)
 
 ---
 
 ## 🌐 Acceso al Sistema
 
-### URLs Principales
+### Local (WSL)
 
-| Servicio | URL Local | URL WSL (Windows) | Puerto |
-|----------|-----------|-------------------|--------|
-| **Panel Login** | http://localhost:8081/login.html | http://172.27.72.64:8081/login.html | 8081 |
-| **Dashboard** | http://localhost:8081/dashboard.html | http://172.27.72.64:8081/dashboard.html | 8081 |
-| **Koha Staff** | http://localhost/ | http://172.27.72.64/ | 80 |
-| **Koha CGI** | http://localhost/cgi-bin/koha/ | http://172.27.72.64/cgi-bin/koha/ | 80 |
-| **DSpace Frontend** | http://localhost:4000 | http://172.27.72.64:4000 | 4000 |
-| **DSpace API** | http://localhost:8090/server/api | http://172.27.72.64:8090/server/api | 8090 |
-| **Auth Service** | http://localhost:3000 | http://172.27.72.64:3000 | 3000 |
+| Servicio | URL |
+|----------|-----|
+| Admin Panel | http://localhost:8088 |
+| DSpace UI | http://localhost:4000 |
+| DSpace API | http://localhost:8090/server/api |
+| Koha Staff | http://localhost:80 |
+| Koha OPAC | http://localhost:8080 |
+| Auth Service | http://localhost:3000 |
+| Proxy Unificado | http://localhost:9000 |
 
-### URLs Administrativas
+### Desde Windows
 
-| Servicio | URL | Puerto |
-|----------|-----|--------|
-| **Solr Admin** | http://localhost:8983/solr | 8983 |
-| **PostgreSQL** | localhost:5433 | 5433 |
-| **MariaDB** | localhost:3307 | 3307 |
-| **Memcached** | localhost:11212 | 11212 |
+Usar IP de WSL (ejemplo: 172.27.72.64):
+\`\`\`
+http://172.27.72.64:8088
+http://172.27.72.64:4000
+\`\`\`
 
----
+### Público (Ngrok)
 
-## 🔑 Credenciales
-
-### Usuarios del Sistema
-
-#### Administrador (Acceso completo)
-```yaml
-Email: admin@biblioteca.local
-Password: admin123
-Privilegios:
-  - DSpace: ✅ Administrador
-  - Koha: ✅ Superlibrarian
-  - Panel Admin: ✅
-```
-
-#### Estudiante (Acceso limitado)
-```yaml
-Email: alumno@biblioteca.local
-Password: alumno123
-Privilegios:
-  - DSpace: ✅ Usuario regular
-  - Koha: ✅ Usuario biblioteca
-  - Panel Admin: ❌
-```
-
-### Bases de Datos
-
-#### PostgreSQL (DSpace)
-```yaml
-Host: localhost
-Puerto: 5433
-Base de datos: dspace
-Usuario: dspace
-Password: dspace
-```
-
-#### MariaDB (Koha)
-```yaml
-Host: localhost
-Puerto: 3307
-Base de datos: koha_biblioteca
-Usuario: koha
-Password: koha_password
-Root Password: koha_root_password
-```
-
-⚠️ **Importante**: Cambiar estas credenciales en producción.
+\`\`\`
+https://[subdominio].ngrok-free.dev/
+https://[subdominio].ngrok-free.dev/dspace/
+https://[subdominio].ngrok-free.dev/koha/
+https://[subdominio].ngrok-free.dev/koha-staff/
+\`\`\`
 
 ---
 
-## 📦 Componentes
+## 🚀 Comandos Útiles
 
-### 1. DSpace 7.6 (Contenedores Docker)
+### Iniciar Sistema
 
-**Repositorio institucional digital** para preservar y dar acceso a la producción académica.
-
-- **dspace-backend**: API REST (Spring Boot)
-- **dspace-angular**: Frontend (Angular 16)
-- **dspacedb**: Base de datos PostgreSQL 13
-- **dspacesolr**: Motor de búsqueda Apache Solr
-
-**Características:**
-- Repositorio de documentos digitales
-- Colecciones y comunidades
-- Flujos de trabajo de aprobación
-- Estadísticas de uso
-- OAI-PMH para interoperabilidad
-- Exportación en múltiples formatos
-
-### 2. Koha 25.05.04 (Instalación Nativa)
-
-**Sistema integrado de gestión bibliotecaria (ILS)** de código abierto.
-
-- **Apache2 + Perl/CGI**: Interfaz web
-- **Zebra**: Indexación y búsqueda bibliográfica
-- **MariaDB**: Base de datos
-- **Background Workers**: Procesos en segundo plano
-
-**Características:**
-- Catalogación MARC21
-- Gestión de circulación (préstamos/devoluciones)
-- OPAC (catálogo público)
-- Gestión de adquisiciones
-- Informes y estadísticas
-- Control de autoridades
-
-### 3. Auth Service (Contenedor Docker)
-
-**Servicio de autenticación centralizada** desarrollado en Node.js.
-
-- **auth-service**: Backend Express + Session management
-- **Panel Web**: Login y Dashboard en HTML/Bootstrap
-
-**Características:**
-- Single Sign-On (SSO)
-- Gestión de sesiones
-- Verificación de privilegios
-- Integración con DSpace API
-- Panel de administración web
-
----
-
-## 📚 Documentación
-
-### Documentos Principales
-
-- [ARQUITECTURA.md](ARQUITECTURA.md) - Arquitectura detallada del sistema
-- [ESTADO_ACTUAL.md](ESTADO_ACTUAL.md) - Estado actual de componentes
-- [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) - Guía para desarrolladores
-- [SISTEMA_SSO.md](SISTEMA_SSO.md) - Documentación del SSO
-- [CREDENCIALES_SISTEMA.md](CREDENCIALES_SISTEMA.md) - Todas las credenciales
-
-### Guías Específicas
-
-- [CONFIGURACION_ESPAÑOL.md](CONFIGURACION_ESPAÑOL.md) - Configuración de idioma
-- [SOLUCION_PROBLEMAS.md](SOLUCION_PROBLEMAS.md) - Troubleshooting
-- [README_AUTO_LOGIN_FIX.md](README_AUTO_LOGIN_FIX.md) - Auto-login en DSpace
-
-### Documentación Externa
-
-- [DSpace Documentation](https://wiki.lyrasis.org/display/DSDOC7x)
-- [Koha Manual](https://koha-community.org/manual/)
-- [Docker Documentation](https://docs.docker.com/)
-
----
-
-## 🛠️ Comandos Útiles
-
-### Gestión de Docker (DSpace + Auth Service)
-
-```bash
-# Ver estado de contenedores
-docker ps
-
-# Ver logs
-docker logs -f dspace-angular
-docker logs -f auth-service
-
-# Reiniciar servicios
-docker-compose restart
-
-# Detener todos los servicios
-docker-compose down
-
-# Iniciar servicios
+\`\`\`bash
+# Iniciar todos los contenedores Docker
 docker-compose up -d
 
-# Reconstruir imágenes
-docker-compose build --no-cache
-```
+# Verificar estado
+docker-compose ps
 
-### Gestión de Koha (Nativo)
+# Ver logs
+docker-compose logs -f
+\`\`\`
 
-```bash
-# Listar instancias de Koha
-koha-list
+### Iniciar Ngrok
 
-# Ver estado de Apache
-sudo systemctl status apache2
+\`\`\`bash
+# Script automático
+./iniciar-ngrok.sh
 
-# Reiniciar Apache
-sudo systemctl restart apache2
+# Manual
+ngrok http 9000 --host-header=rewrite
+\`\`\`
 
-# Ver logs de Koha
-sudo tail -f /var/log/koha/biblioteca/opac-error.log
-sudo tail -f /var/log/koha/biblioteca/intranet-error.log
+### Gestión de Bases de Datos
 
-# Reindexar Zebra
-sudo koha-rebuild-zebra -f -v biblioteca
+\`\`\`bash
+# Conectar a PostgreSQL (biblioteca_auth)
+docker exec -it dspacedb psql -U dspace -d biblioteca_auth
 
-# Backup de base de datos
-sudo koha-dump biblioteca
-```
+# Ver usuarios
+docker exec -i dspacedb psql -U dspace -d biblioteca_auth -c "SELECT email, nombre, tipo FROM usuarios;"
 
-### Verificación de Servicios
+# Conectar a MariaDB (Koha)
+docker exec -it koha-mariadb mysql -u koha -pkoha_password koha_biblioteca
+\`\`\`
 
-```bash
-# Verificar puertos abiertos
-sudo netstat -tulpn | grep -E '80|3000|4000|8090'
+### Gestión de Solr
 
-# Verificar conectividad
-curl -I http://localhost:8081
-curl -I http://localhost/cgi-bin/koha/
-curl -I http://localhost:4000
+\`\`\`bash
+# Ver cores activos
+curl http://localhost:8983/solr/admin/cores?action=STATUS
 
-# Verificar bases de datos
-docker exec dspacedb pg_isready
-docker exec koha-mariadb mysqladmin ping
+# Crear cores (si no existen)
+docker exec dspacesolr solr create_core -c search -d /opt/solr/server/solr/configsets/search
+\`\`\`
 
-# Verificar Auth Service
-curl http://localhost:3000/health
-```
+### Reiniciar Servicios
 
----
+\`\`\`bash
+# Reiniciar DSpace
+docker-compose restart dspace dspace-angular
 
-## 🐛 Solución de Problemas
+# Reiniciar Auth Service
+docker-compose restart auth-service
 
-### Koha no responde
-
-```bash
-# Verificar Apache
-sudo systemctl status apache2
-sudo systemctl restart apache2
-
-# Verificar base de datos
-docker ps | grep mariadb
-docker restart koha-mariadb
-
-# Ver errores
-sudo tail -f /var/log/apache2/error.log
-```
-
-### DSpace muestra pantalla blanca
-
-```bash
-# Verificar logs
-docker logs dspace-angular
-
-# Reiniciar frontend
-docker restart dspace-angular
-
-# Esperar compilación (3-5 minutos)
-docker logs -f dspace-angular | grep "Compiled successfully"
-```
-
-### Auth Service no conecta
-
-```bash
-# Verificar servicio
-docker ps | grep auth-service
-docker logs auth-service
-
-# Reiniciar servicio
-docker restart auth-service
-
-# Verificar puerto
-curl http://localhost:3000/health
-```
-
-### Error de conexión entre servicios
-
-```bash
-# Verificar red Docker
-docker network ls
-docker network inspect biblioteca_dspacenet
-
-# Verificar IP de WSL (si aplica)
-ip addr show eth0 | grep inet
-
-# Actualizar IP en archivos de configuración si es necesario
-```
-
-### Base de datos no acepta conexiones
-
-```bash
-# PostgreSQL (DSpace)
-docker exec -it dspacedb psql -U dspace -d dspace -c "SELECT version();"
-
-# MariaDB (Koha)
-docker exec -it koha-mariadb mysql -u root -pkoha_root_password -e "SHOW DATABASES;"
-```
-
-Ver [SOLUCION_PROBLEMAS.md](SOLUCION_PROBLEMAS.md) para más detalles.
+# Reiniciar todo
+docker-compose restart
+\`\`\`
 
 ---
 
-## 🚧 Estado del Proyecto
+## 📊 Estado del Sistema
 
-### ✅ Completado
+### Versión: 2.0.0 - Octubre 2025
 
-- [x] Instalación de Koha nativo en Ubuntu
-- [x] Instalación de DSpace en Docker
-- [x] Sistema de autenticación centralizado (SSO)
-- [x] Panel de login unificado
-- [x] Dashboard de usuario
-- [x] Configuración de idioma español en todos los componentes
-- [x] Integración con DSpace API
-- [x] Documentación completa
+### Servicios Activos
 
-### 🔄 En Progreso
-
-- [ ] Auto-login completo en Koha desde panel SSO
-- [ ] Integración completa de privilegios entre sistemas
-- [ ] Mejoras de seguridad (HTTPS, JWT)
-
-### 📋 Pendiente
-
-- [ ] Configuración HTTPS/SSL
-- [ ] Autenticación LDAP/Active Directory
-- [ ] Backup automatizado
-- [ ] Monitoreo con Prometheus/Grafana
-- [ ] Single Logout (SLO) sincronizado
-- [ ] Tests automatizados
-
-Ver [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) para roadmap completo.
+- ✅ DSpace 7.6.6 - Completamente funcional
+- ✅ Koha - Instalación nativa completa
+- ✅ Auth Service - SSO operativo
+- ✅ Admin Panel - Diseño institucional
+- ✅ Módulo de Citas - Sistema completo
+- ✅ Auto-Login - Funcionando
+- ✅ Solr - 4 cores activos
+- ✅ Bases de Datos - Operativas
 
 ---
 
-## 👥 Contribuir
+## 📝 Notas Importantes
 
-Contribuciones son bienvenidas. Por favor:
+### WSL2 y Windows
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+- Los servicios corren en WSL2
+- Accesibles desde Windows usando IP de WSL
+- Docker Desktop debe tener integración WSL2 habilitada
+- IP de WSL puede cambiar al reiniciar Windows
 
-Ver [GUIA_DESARROLLO.md](GUIA_DESARROLLO.md) para guías de contribución.
+### Koha Nativo vs Docker
 
----
+Koha está instalado nativamente en Ubuntu (no en Docker) por:
+- Mayor estabilidad con Apache + Plack
+- Mejor rendimiento
+- Facilita personalización
+- Compatibilidad con módulos Perl
 
-## 📄 Licencia
+### Seguridad
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+**Desarrollo**:
+- Contraseñas por defecto (CAMBIAR EN PRODUCCIÓN)
+- CORS permisivo
+- Logs verbose
 
-Los componentes individuales mantienen sus propias licencias:
-- **DSpace**: BSD 3-Clause License
-- **Koha**: GNU General Public License v3.0
-- **Auth Service**: MIT License
-
----
-
-## 📞 Soporte
-
-Para problemas o preguntas:
-
-1. Revisar [SOLUCION_PROBLEMAS.md](SOLUCION_PROBLEMAS.md)
-2. Buscar en Issues existentes
-3. Crear un nuevo Issue con detalles
+**Producción**:
+- Cambiar todas las contraseñas
+- Habilitar HTTPS nativo
+- Configurar firewall
+- Rate limiting
+- Backups automáticos
 
 ---
 
-## 🙏 Agradecimientos
+## 🎖️ Créditos
 
-- [DSpace Community](https://dspace.lyrasis.org/)
-- [Koha Community](https://koha-community.org/)
-- [Docker](https://www.docker.com/)
-- Todos los contribuidores del proyecto
+Desarrollado para la **Heroica Escuela Naval Militar (HENM)**.
 
----
-
-## 📊 Estadísticas
-
-- **Versión**: 1.0.0
-- **Última actualización**: Octubre 2025
-- **Estado**: Producción (Desarrollo)
-- **Contenedores activos**: 9
-- **Servicios nativos**: 1 (Koha)
-- **Idioma**: Español (es-ES)
+**Tecnologías Open Source**:
+- DSpace Community
+- Koha Community
+- Docker Inc.
+- PostgreSQL Global Development Group
 
 ---
 
-**Desarrollado con ❤️ para bibliotecas**
+**Última actualización**: Octubre 2025  
+**Versión**: 2.0.0
 
-```
-Sistema Biblioteca Digital v1.0.0
-Ubuntu + Docker | Koha + DSpace | Auth Service
-```
+© 2025 HENM - Todos los derechos reservados

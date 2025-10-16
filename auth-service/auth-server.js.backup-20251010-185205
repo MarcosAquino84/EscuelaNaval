@@ -61,7 +61,7 @@ const bcrypt = require('bcryptjs');
 const FormData = require('form-data');
 
 // Importar módulos de base de datos y rutas
-const { verificarConexion, query } = require('./db');
+const { verificarConexion } = require('./db');
 const citasRoutes = require('./citas-routes');
 
 const app = express();
@@ -69,7 +69,7 @@ const PORT = 3000;
 
 // Configuración de middleware
 app.use(cors({
-    origin: true, // Permitir todos los orígenes (el proxy nginx maneja CORS)
+    origin: ['http://172.27.72.64:8081', 'http://localhost:8081', 'http://localhost:8088', 'http://172.27.72.64:8088', 'http://localhost:3000'],
     credentials: true
 }));
 app.use(bodyParser.json());
@@ -88,29 +88,74 @@ app.use(session({
 // Integrar rutas del módulo de orientación educativa (citas)
 app.use('/api', citasRoutes);
 
-// ============================================================================
-// HELPER: Mapear privilegios desde base de datos
-// ============================================================================
-function mapearPrivilegios(usuarioDB) {
-    // Los privilegios se almacenan como columnas booleanas en la BD
-    return {
-        dspace: usuarioDB.priv_dspace || false,
-        koha_staff: usuarioDB.priv_koha_staff || false,
-        koha_opac: usuarioDB.priv_koha_opac || false,
-        admin: usuarioDB.priv_admin || false
-    };
-}
-
-// ============================================================================
-// AUTENTICACIÓN: Verificar contraseña con bcrypt
-// ============================================================================
-async function verificarPassword(passwordIngresada, passwordHash) {
-    try {
-        return await bcrypt.compare(passwordIngresada, passwordHash);
-    } catch (error) {
-        console.error('Error al verificar contraseña:', error);
-        return false;
+// Base de datos de usuarios en memoria (en producción usar PostgreSQL/MariaDB)
+const usuarios = [
+    {
+        id: 1,
+        email: 'admin@biblioteca.local',
+        nombre: 'Admin',
+        apellido: 'Koha',
+        password: '$2a$10$XQKq7P8h5LZJqxVxK7KqJeYxGZxQ5KqZ5KqZ5KqZ5KqZ5Kq', // admin123
+        tipo: 'administrador',
+        privilegios: {
+            dspace: true,
+            koha_staff: true, // Staff interface
+            koha_opac: true,  // OPAC
+            admin: true
+        }
+    },
+    {
+        id: 2,
+        email: 'marcos@biblioteca.local',
+        nombre: 'Marcos',
+        apellido: 'Administrador',
+        password: '$2a$10$marcos123hash', // marcos123
+        tipo: 'administrador',
+        privilegios: {
+            dspace: true,
+            koha_staff: true, // Staff interface
+            koha_opac: true,  // OPAC
+            admin: true
+        }
+    },
+    {
+        id: 3,
+        email: 'maria.garcia@estudiante.local',
+        nombre: 'María',
+        apellido: 'García',
+        password: '$2a$10$estudiante123hash', // estudiante123
+        tipo: 'estudiante',
+        privilegios: {
+            dspace: true,       // ✅ Acceso a DSpace
+            koha_staff: false,  // NO puede acceder a staff
+            koha_opac: true,    // ✅ Acceso a OPAC
+            admin: false
+        }
+    },
+    {
+        id: 4,
+        email: 'alumno@biblioteca.local',
+        nombre: 'Maria',
+        apellido: 'Garcia',
+        password: '$2a$10$YRLr8Q9i6MAKrwWyM8LrNOZyHaxRaxSaxSaxSaxSaxSax', // alumno123
+        tipo: 'estudiante',
+        privilegios: {
+            dspace: true,
+            koha_staff: false, // NO puede acceder a staff
+            koha_opac: true,   // Solo OPAC
+            admin: false
+        }
     }
+];
+
+// Función para verificar contraseña (simplificada para demo)
+function verificarPassword(passwordIngresada, passwordHash) {
+    // En esta versión simplificada comparamos directamente
+    // En producción usar bcrypt.compare()
+    if (passwordIngresada === 'admin123' || passwordIngresada === 'marcos123' || passwordIngresada === 'alumno123' || passwordIngresada === 'estudiante123') {
+        return true;
+    }
+    return false;
 }
 
 // ============================================================================
@@ -217,107 +262,83 @@ app.post('/api/login', async (req, res) => {
         });
     }
 
-    try {
-        // Buscar usuario en PostgreSQL
-        const result = await query(
-            'SELECT * FROM usuarios WHERE email = $1 AND activo = true',
-            [email]
-        );
+    // Buscar usuario en base de datos local
+    const usuario = usuarios.find(u => u.email === email);
 
-        if (result.rows.length === 0) {
-            return res.status(401).json({
-                success: false,
-                message: 'Credenciales inválidas'
-            });
-        }
-
-        const usuarioDB = result.rows[0];
-
-        // Verificar contraseña con bcrypt
-        const passwordValida = await verificarPassword(password, usuarioDB.password_hash);
-
-        if (!passwordValida) {
-            return res.status(401).json({
-                success: false,
-                message: 'Credenciales inválidas'
-            });
-        }
-
-        // Mapear privilegios desde BD
-        const privilegios = mapearPrivilegios(usuarioDB);
-
-        // Autenticar en DSpace si tiene privilegios
-        let dspaceAuth = { success: false };
-        if (privilegios.dspace) {
-            dspaceAuth = await autenticarDSpace(email, password);
-        }
-
-        // Autenticar en Koha si tiene privilegios (staff o opac)
-        let kohaAuth = { success: false };
-        if (privilegios.koha_staff || privilegios.koha_opac) {
-            kohaAuth = await autenticarKoha(email, password);
-        }
-
-        // Crear sesión
-        req.session.usuario = {
-            id: usuarioDB.id,
-            email: usuarioDB.email,
-            nombre: usuarioDB.nombre,
-            apellido: usuarioDB.apellido,
-            tipo: usuarioDB.tipo,
-            privilegios: privilegios
-        };
-
-        // Guardar tokens en sesión
-        if (dspaceAuth.success && dspaceAuth.token) {
-            req.session.dspaceToken = dspaceAuth.token;
-        }
-
-        if (kohaAuth.success && kohaAuth.sessionId) {
-            req.session.kohaSessionId = kohaAuth.sessionId;
-            req.session.kohaCookie = kohaAuth.cookie;
-        }
-
-        // Actualizar último acceso
-        await query(
-            'UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = $1',
-            [usuarioDB.id]
-        );
-
-        // Responder con información del usuario y tokens
-        res.json({
-            success: true,
-            message: 'Autenticación exitosa',
-            usuario: {
-                id: usuarioDB.id,
-                email: usuarioDB.email,
-                nombre: usuarioDB.nombre,
-                apellido: usuarioDB.apellido,
-                nombreCompleto: `${usuarioDB.nombre} ${usuarioDB.apellido}`,
-                tipo: usuarioDB.tipo,
-                privilegios: privilegios,
-                especialidad: usuarioDB.especialidad || null,
-                password: password // Enviar para autenticación automática
-            },
-            tokens: {
-                dspace: dspaceAuth.success ? dspaceAuth.token : null,
-                koha: kohaAuth.success ? kohaAuth.sessionId : null
-            },
-            sistemas_disponibles: {
-                dspace: privilegios.dspace || false,
-                koha_opac: privilegios.koha_opac || false,
-                koha_staff: privilegios.koha_staff || false,
-                admin: privilegios.admin || false
-            }
-        });
-
-    } catch (error) {
-        console.error('Error en login:', error);
-        res.status(500).json({
+    if (!usuario) {
+        return res.status(401).json({
             success: false,
-            message: 'Error interno del servidor'
+            message: 'Credenciales inválidas'
         });
     }
+
+    // Verificar contraseña
+    const passwordValida = verificarPassword(password, usuario.password);
+
+    if (!passwordValida) {
+        return res.status(401).json({
+            success: false,
+            message: 'Credenciales inválidas'
+        });
+    }
+
+    // Autenticar en DSpace si tiene privilegios
+    let dspaceAuth = { success: false };
+    if (usuario.privilegios.dspace) {
+        dspaceAuth = await autenticarDSpace(email, password);
+    }
+
+    // Autenticar en Koha si tiene privilegios (staff o opac)
+    let kohaAuth = { success: false };
+    if (usuario.privilegios.koha_staff || usuario.privilegios.koha_opac) {
+        kohaAuth = await autenticarKoha(email, password);
+    }
+
+    // Crear sesión
+    req.session.usuario = {
+        id: usuario.id,
+        email: usuario.email,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        tipo: usuario.tipo,
+        privilegios: usuario.privilegios
+    };
+
+    // Guardar tokens en sesión
+    if (dspaceAuth.success && dspaceAuth.token) {
+        req.session.dspaceToken = dspaceAuth.token;
+    }
+
+    if (kohaAuth.success && kohaAuth.sessionId) {
+        req.session.kohaSessionId = kohaAuth.sessionId;
+        req.session.kohaCookie = kohaAuth.cookie;
+    }
+
+    // Responder con información del usuario y tokens
+    res.json({
+        success: true,
+        message: 'Autenticación exitosa',
+        usuario: {
+            id: usuario.id,
+            email: usuario.email,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            nombreCompleto: `${usuario.nombre} ${usuario.apellido}`,
+            tipo: usuario.tipo,
+            privilegios: usuario.privilegios,
+            password: password // Enviar para autenticación automática
+        },
+        tokens: {
+            dspace: dspaceAuth.success ? dspaceAuth.token : null,
+            koha: kohaAuth.success ? kohaAuth.sessionId : null
+        },
+        sistemas_disponibles: {
+            dspace: usuario.privilegios.dspace || false,
+            koha_opac: usuario.privilegios.koha_opac || false,
+            koha_staff: usuario.privilegios.koha_staff || false,
+            admin: usuario.privilegios.admin || false
+        }
+    });
 });
 
 // Endpoint: Verificar sesión
@@ -401,322 +422,187 @@ function verificarAdmin(req, res, next) {
 // ============================================================================
 
 // GET /api/usuarios - Listar todos los usuarios (solo admin)
-app.get('/api/usuarios', verificarAutenticacion, verificarAdmin, async (req, res) => {
-    try {
-        const result = await query(
-            `SELECT id, email, nombre, apellido, tipo, especialidad, telefono, biografia, activo, created_at, ultimo_acceso,
-             priv_dspace, priv_koha_staff, priv_koha_opac, priv_admin
-             FROM usuarios
-             ORDER BY tipo, nombre`
-        );
+app.get('/api/usuarios', verificarAutenticacion, verificarAdmin, (req, res) => {
+    // No enviar passwords en la respuesta
+    const usuariosSinPassword = usuarios.map(u => {
+        const { password, ...usuarioSinPass } = u;
+        return usuarioSinPass;
+    });
 
-        // Mapear privilegios para cada usuario
-        const usuarios = result.rows.map(u => ({
-            id: u.id,
-            email: u.email,
-            nombre: u.nombre,
-            apellido: u.apellido,
-            nombreCompleto: `${u.nombre} ${u.apellido}`,
-            tipo: u.tipo,
-            especialidad: u.especialidad,
-            telefono: u.telefono,
-            biografia: u.biografia,
-            activo: u.activo,
-            created_at: u.created_at,
-            ultimo_acceso: u.ultimo_acceso,
-            privilegios: {
-                dspace: u.priv_dspace,
-                koha_staff: u.priv_koha_staff,
-                koha_opac: u.priv_koha_opac,
-                admin: u.priv_admin
-            }
-        }));
-
-        res.json({
-            success: true,
-            usuarios: usuarios,
-            total: usuarios.length
-        });
-    } catch (error) {
-        console.error('Error al listar usuarios:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al obtener usuarios'
-        });
-    }
+    res.json({
+        success: true,
+        usuarios: usuariosSinPassword,
+        total: usuariosSinPassword.length
+    });
 });
 
 // GET /api/usuarios/:id - Obtener un usuario específico (solo admin)
-app.get('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await query(
-            `SELECT id, email, nombre, apellido, tipo, especialidad, telefono, biografia, activo, created_at, ultimo_acceso,
-             priv_dspace, priv_koha_staff, priv_koha_opac, priv_admin
-             FROM usuarios
-             WHERE id = $1`,
-            [id]
-        );
+app.get('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, (req, res) => {
+    const id = parseInt(req.params.id);
+    const usuario = usuarios.find(u => u.id === id);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
-        }
-
-        const u = result.rows[0];
-        const usuario = {
-            id: u.id,
-            email: u.email,
-            nombre: u.nombre,
-            apellido: u.apellido,
-            nombreCompleto: `${u.nombre} ${u.apellido}`,
-            tipo: u.tipo,
-            especialidad: u.especialidad,
-            telefono: u.telefono,
-            biografia: u.biografia,
-            activo: u.activo,
-            created_at: u.created_at,
-            ultimo_acceso: u.ultimo_acceso,
-            privilegios: {
-                dspace: u.priv_dspace,
-                koha_staff: u.priv_koha_staff,
-                koha_opac: u.priv_koha_opac,
-                admin: u.priv_admin
-            }
-        };
-
-        res.json({
-            success: true,
-            usuario: usuario
-        });
-    } catch (error) {
-        console.error('Error al obtener usuario:', error);
-        res.status(500).json({
+    if (!usuario) {
+        return res.status(404).json({
             success: false,
-            message: 'Error al obtener usuario'
+            message: 'Usuario no encontrado'
         });
     }
+
+    // No enviar password en la respuesta
+    const { password, ...usuarioSinPass } = usuario;
+
+    res.json({
+        success: true,
+        usuario: usuarioSinPass
+    });
 });
 
 // POST /api/usuarios - Crear un nuevo usuario (solo admin)
 app.post('/api/usuarios', verificarAutenticacion, verificarAdmin, async (req, res) => {
-    try {
-        const { email, nombre, apellido, password, tipo, especialidad, telefono, biografia, privilegios } = req.body;
+    const { email, nombre, apellido, password, tipo, privilegios } = req.body;
 
-        // Validaciones
-        if (!email || !nombre || !apellido || !password || !tipo) {
-            return res.status(400).json({
-                success: false,
-                message: 'Todos los campos son requeridos: email, nombre, apellido, password, tipo'
-            });
-        }
-
-        // Verificar que el email no exista
-        const checkEmail = await query('SELECT id FROM usuarios WHERE email = $1', [email]);
-        if (checkEmail.rows.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'El email ya está registrado'
-            });
-        }
-
-        // Hashear contraseña con bcrypt
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        // Definir privilegios por defecto según tipo
-        let privs = privilegios || {};
-
-        if (tipo === 'administrador') {
-            privs = {
-                dspace: true,
-                koha_staff: true,
-                koha_opac: true,
-                admin: true,
-                ...privilegios
-            };
-        } else if (tipo === 'estudiante') {
-            privs = {
-                dspace: true,
-                koha_staff: false,
-                koha_opac: true,
-                admin: false,
-                ...privilegios
-            };
-        } else if (tipo === 'orientador') {
-            privs = {
-                dspace: false,
-                koha_staff: false,
-                koha_opac: true,
-                admin: false,
-                ...privilegios
-            };
-        }
-
-        // Insertar usuario en base de datos
-        const result = await query(
-            `INSERT INTO usuarios
-             (email, nombre, apellido, password_hash, tipo, especialidad, telefono, biografia,
-              priv_dspace, priv_koha_staff, priv_koha_opac, priv_admin)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-             RETURNING id, email, nombre, apellido, tipo, especialidad, created_at`,
-            [email, nombre, apellido, passwordHash, tipo, especialidad, telefono, biografia,
-             privs.dspace, privs.koha_staff, privs.koha_opac, privs.admin]
-        );
-
-        const nuevoUsuario = result.rows[0];
-
-        res.status(201).json({
-            success: true,
-            message: 'Usuario creado exitosamente',
-            usuario: {
-                ...nuevoUsuario,
-                privilegios: privs
-            }
-        });
-    } catch (error) {
-        console.error('Error al crear usuario:', error);
-        res.status(500).json({
+    // Validaciones
+    if (!email || !nombre || !apellido || !password || !tipo) {
+        return res.status(400).json({
             success: false,
-            message: 'Error al crear usuario'
+            message: 'Todos los campos son requeridos: email, nombre, apellido, password, tipo'
         });
     }
+
+    // Verificar que el email no exista
+    if (usuarios.find(u => u.email === email)) {
+        return res.status(400).json({
+            success: false,
+            message: 'El email ya está registrado'
+        });
+    }
+
+    // Generar nuevo ID
+    const nuevoId = Math.max(...usuarios.map(u => u.id)) + 1;
+
+    // Definir privilegios por defecto según tipo
+    let privilegiosUsuario = privilegios || {};
+
+    if (tipo === 'administrador') {
+        privilegiosUsuario = {
+            dspace: true,
+            koha_staff: true,
+            koha_opac: true,
+            admin: true,
+            ...privilegios // Permitir override
+        };
+    } else if (tipo === 'estudiante') {
+        privilegiosUsuario = {
+            dspace: true,
+            koha_staff: false,
+            koha_opac: true,
+            admin: false,
+            ...privilegios // Permitir override
+        };
+    }
+
+    // Crear nuevo usuario
+    const nuevoUsuario = {
+        id: nuevoId,
+        email,
+        nombre,
+        apellido,
+        password: `$2a$10$${password}hash`, // En producción usar bcrypt.hash(password, 10)
+        tipo,
+        privilegios: privilegiosUsuario
+    };
+
+    // Agregar a la lista
+    usuarios.push(nuevoUsuario);
+
+    // Responder sin password
+    const { password: _, ...usuarioSinPass } = nuevoUsuario;
+
+    res.status(201).json({
+        success: true,
+        message: 'Usuario creado exitosamente',
+        usuario: usuarioSinPass
+    });
 });
 
 // PUT /api/usuarios/:id - Actualizar un usuario existente (solo admin)
-app.put('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { email, nombre, apellido, password, tipo, especialidad, telefono, biografia, privilegios, activo } = req.body;
+app.put('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, (req, res) => {
+    const id = parseInt(req.params.id);
+    const { email, nombre, apellido, password, tipo, privilegios } = req.body;
 
-        // Verificar que el usuario existe
-        const checkUser = await query('SELECT id FROM usuarios WHERE id = $1', [id]);
-        if (checkUser.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
-        }
+    const indiceUsuario = usuarios.findIndex(u => u.id === id);
 
-        // Si se proporciona un email nuevo, verificar que no esté en uso
-        if (email) {
-            const checkEmail = await query('SELECT id FROM usuarios WHERE email = $1 AND id != $2', [email, id]);
-            if (checkEmail.rows.length > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'El email ya está registrado por otro usuario'
-                });
-            }
-        }
-
-        // Construir query de actualización dinámicamente
-        const updates = [];
-        const values = [];
-        let paramCounter = 1;
-
-        if (email) { updates.push(`email = $${paramCounter++}`); values.push(email); }
-        if (nombre) { updates.push(`nombre = $${paramCounter++}`); values.push(nombre); }
-        if (apellido) { updates.push(`apellido = $${paramCounter++}`); values.push(apellido); }
-        if (tipo) { updates.push(`tipo = $${paramCounter++}`); values.push(tipo); }
-        if (especialidad !== undefined) { updates.push(`especialidad = $${paramCounter++}`); values.push(especialidad); }
-        if (telefono !== undefined) { updates.push(`telefono = $${paramCounter++}`); values.push(telefono); }
-        if (biografia !== undefined) { updates.push(`biografia = $${paramCounter++}`); values.push(biografia); }
-        if (activo !== undefined) { updates.push(`activo = $${paramCounter++}`); values.push(activo); }
-
-        if (password) {
-            const passwordHash = await bcrypt.hash(password, 10);
-            updates.push(`password_hash = $${paramCounter++}`);
-            values.push(passwordHash);
-        }
-
-        if (privilegios) {
-            if (privilegios.dspace !== undefined) { updates.push(`priv_dspace = $${paramCounter++}`); values.push(privilegios.dspace); }
-            if (privilegios.koha_staff !== undefined) { updates.push(`priv_koha_staff = $${paramCounter++}`); values.push(privilegios.koha_staff); }
-            if (privilegios.koha_opac !== undefined) { updates.push(`priv_koha_opac = $${paramCounter++}`); values.push(privilegios.koha_opac); }
-            if (privilegios.admin !== undefined) { updates.push(`priv_admin = $${paramCounter++}`); values.push(privilegios.admin); }
-        }
-
-        if (updates.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No se proporcionaron campos para actualizar'
-            });
-        }
-
-        updates.push(`updated_at = NOW()`);
-        values.push(id);
-
-        const updateQuery = `UPDATE usuarios SET ${updates.join(', ')} WHERE id = $${paramCounter} RETURNING *`;
-        const result = await query(updateQuery, values);
-
-        const u = result.rows[0];
-        res.json({
-            success: true,
-            message: 'Usuario actualizado exitosamente',
-            usuario: {
-                id: u.id,
-                email: u.email,
-                nombre: u.nombre,
-                apellido: u.apellido,
-                tipo: u.tipo,
-                privilegios: mapearPrivilegios(u)
-            }
-        });
-    } catch (error) {
-        console.error('Error al actualizar usuario:', error);
-        res.status(500).json({
+    if (indiceUsuario === -1) {
+        return res.status(404).json({
             success: false,
-            message: 'Error al actualizar usuario'
+            message: 'Usuario no encontrado'
         });
     }
+
+    // Verificar que el email no esté usado por otro usuario
+    if (email && email !== usuarios[indiceUsuario].email) {
+        if (usuarios.find(u => u.email === email && u.id !== id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'El email ya está registrado por otro usuario'
+            });
+        }
+    }
+
+    // Actualizar campos
+    if (email) usuarios[indiceUsuario].email = email;
+    if (nombre) usuarios[indiceUsuario].nombre = nombre;
+    if (apellido) usuarios[indiceUsuario].apellido = apellido;
+    if (password) usuarios[indiceUsuario].password = `$2a$10$${password}hash`; // En producción usar bcrypt
+    if (tipo) usuarios[indiceUsuario].tipo = tipo;
+    if (privilegios) usuarios[indiceUsuario].privilegios = privilegios;
+
+    // Responder sin password
+    const { password: _, ...usuarioSinPass } = usuarios[indiceUsuario];
+
+    res.json({
+        success: true,
+        message: 'Usuario actualizado exitosamente',
+        usuario: usuarioSinPass
+    });
 });
 
 // DELETE /api/usuarios/:id - Eliminar un usuario (solo admin)
-app.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
+app.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, (req, res) => {
+    const id = parseInt(req.params.id);
 
-        // No permitir eliminar al usuario con ID 1 (admin principal)
-        if (parseInt(id) === 1) {
-            return res.status(403).json({
-                success: false,
-                message: 'No se puede eliminar al administrador principal'
-            });
-        }
-
-        // No permitir que el usuario se elimine a sí mismo
-        if (req.session.usuario.id === parseInt(id)) {
-            return res.status(403).json({
-                success: false,
-                message: 'No puede eliminar su propia cuenta'
-            });
-        }
-
-        // Eliminar usuario (soft delete)
-        const result = await query(
-            'UPDATE usuarios SET activo = false WHERE id = $1 RETURNING email',
-            [id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
-        }
-
-        res.json({
-            success: true,
-            message: `Usuario ${result.rows[0].email} desactivado exitosamente`
-        });
-    } catch (error) {
-        console.error('Error al eliminar usuario:', error);
-        res.status(500).json({
+    // No permitir eliminar al usuario con ID 1 (admin principal)
+    if (id === 1) {
+        return res.status(403).json({
             success: false,
-            message: 'Error al eliminar usuario'
+            message: 'No se puede eliminar al administrador principal'
         });
     }
+
+    // No permitir que el usuario se elimine a sí mismo
+    if (req.session.usuario.id === id) {
+        return res.status(403).json({
+            success: false,
+            message: 'No puede eliminar su propia cuenta'
+        });
+    }
+
+    const indiceUsuario = usuarios.findIndex(u => u.id === id);
+
+    if (indiceUsuario === -1) {
+        return res.status(404).json({
+            success: false,
+            message: 'Usuario no encontrado'
+        });
+    }
+
+    // Eliminar usuario
+    const usuarioEliminado = usuarios.splice(indiceUsuario, 1)[0];
+
+    res.json({
+        success: true,
+        message: `Usuario ${usuarioEliminado.email} eliminado exitosamente`
+    });
 });
 
 // ============================================================================
