@@ -261,7 +261,7 @@
 
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '/koha/cgi-bin/koha/opac-user.pl';
+                form.action = 'http://localhost:8080/cgi-bin/koha/opac-user.pl';
                 form.id = 'autoLoginForm';
 
                 // Campo de contexto Koha (REQUERIDO)
@@ -278,17 +278,17 @@
                 opField.value = 'cud-login';
                 form.appendChild(opField);
 
-                // Campo de usuario (nombre correcto: login_userid)
+                // Campo de usuario (nombre correcto: userid)
                 const useridField = document.createElement('input');
                 useridField.type = 'hidden';
-                useridField.name = 'login_userid';
+                useridField.name = 'userid';
                 useridField.value = kohaUserid;
                 form.appendChild(useridField);
 
-                // Campo de contraseña (nombre correcto: login_password)
+                // Campo de contraseña (nombre correcto: password)
                 const passwordField = document.createElement('input');
                 passwordField.type = 'hidden';
-                passwordField.name = 'login_password';
+                passwordField.name = 'password';
                 passwordField.value = usuario.password;
                 form.appendChild(passwordField);
 

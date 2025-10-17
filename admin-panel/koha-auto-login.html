@@ -248,7 +248,7 @@
     </footer>
 
     <!-- Formulario oculto que se auto-enviará -->
-    <form id="kohaLoginForm" action="/koha-staff/cgi-bin/koha/mainpage.pl" method="POST" style="display:none;">
+    <form id="kohaLoginForm" action="http://localhost/cgi-bin/koha/mainpage.pl" method="POST" style="display:none;">
         <input type="hidden" name="op" value="cud-login">
         <input type="hidden" name="koha_login_context" value="intranet">
         <input type="text" name="login_userid" id="login_userid">
@@ -299,7 +299,7 @@
 
                 // Redirigir a Koha después de 2 segundos
                 setTimeout(() => {
-                    window.location.href = '/koha-staff/cgi-bin/koha/mainpage.pl';
+                    window.location.href = 'http://localhost/cgi-bin/koha/mainpage.pl';
                 }, 2000);
             }
         }

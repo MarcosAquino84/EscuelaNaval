@@ -377,6 +377,269 @@ async function autenticarKoha(userid, password) {
     }
 }
 
+// ============================================================================
+// FUNCIONES DE SINCRONIZACIÓN DE USUARIOS CON SISTEMAS EXTERNOS
+// ============================================================================
+
+/**
+ * Crear usuario en DSpace mediante API REST
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña del usuario
+ * @param {string} nombre - Nombre del usuario
+ * @param {string} apellido - Apellido del usuario
+ * @returns {Promise<{success: boolean, userId?: string, error?: string}>}
+ */
+async function crearUsuarioDSpace(email, password, nombre, apellido) {
+    try {
+        // Paso 1: Obtener token CSRF de DSpace
+        const statusResponse = await axios.get(
+            'http://172.27.72.64:8090/server/api/authn/status',
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const csrfToken = statusResponse.headers['dspace-xsrf-token'];
+        const cookies = statusResponse.headers['set-cookie'];
+
+        if (!csrfToken) {
+            throw new Error('No se pudo obtener token CSRF de DSpace');
+        }
+
+        // Paso 2: Autenticarnos como admin en DSpace con CSRF token
+        const adminLoginResponse = await axios.post(
+            'http://172.27.72.64:8090/server/api/authn/login',
+            {
+                email: 'admin@biblioteca.local',
+                password: 'admin123'
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken,
+                    'Cookie': cookies ? cookies.join('; ') : ''
+                }
+            }
+        );
+
+        const adminToken = adminLoginResponse.headers['authorization'];
+        if (!adminToken) {
+            throw new Error('No se pudo obtener token de administrador de DSpace');
+        }
+
+        // Crear el usuario usando la API de DSpace
+        const createUserResponse = await axios.post(
+            'http://172.27.72.64:8090/server/api/eperson/epersons',
+            {
+                email: email,
+                password: password,
+                name: `${nombre} ${apellido}`,
+                metadata: {
+                    'eperson.firstname': [{ value: nombre }],
+                    'eperson.lastname': [{ value: apellido }]
+                },
+                canLogIn: true,
+                requireCertificate: false
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': adminToken
+                }
+            }
+        );
+
+        const userId = createUserResponse.data?.id || createUserResponse.data?.uuid;
+
+        console.log(`✅ Usuario creado en DSpace: ${email} (ID: ${userId})`);
+
+        return {
+            success: true,
+            userId: userId
+        };
+
+    } catch (error) {
+        console.error(`❌ Error al crear usuario en DSpace (${email}):`, error.message);
+
+        // Si el error es que ya existe el usuario, considerarlo éxito
+        if (error.response?.status === 422 || error.response?.status === 409) {
+            console.log(`⚠️ Usuario ya existe en DSpace: ${email}`);
+            return { success: true, userId: null };
+        }
+
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Crear usuario en Koha mediante API REST o acceso directo a BD
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña del usuario
+ * @param {string} nombre - Nombre del usuario
+ * @param {string} apellido - Apellido del usuario
+ * @param {boolean} isStaff - Si el usuario tiene privilegios staff
+ * @returns {Promise<{success: boolean, borrowernumber?: number, error?: string}>}
+ */
+async function crearUsuarioKoha(email, password, nombre, apellido, isStaff = false) {
+    try {
+        // Generar userid único (primera letra nombre + apellido)
+        const userid = (nombre.charAt(0) + apellido).toLowerCase().replace(/\s/g, '');
+
+        // Generar cardnumber único basado en timestamp
+        const cardnumber = `USR${Date.now().toString().slice(-8)}`;
+
+        // NOTA: Koha API REST no está disponible, se requiere sincronización manual
+        // Los usuarios deben crearse manualmente en Koha usando el script:
+        // /home/marcos/EscuelaNaval/koha-create-user.sh
+
+        console.log(`⚠️ Koha: Sincronización manual requerida para ${email}`);
+        console.log(`   Ejecutar: /home/marcos/EscuelaNaval/koha-create-user.sh "${email}" "${password}" "${nombre}" "${apellido}" "${isStaff}"`);
+
+        // Retornar éxito parcial - el usuario debe crearse manualmente
+        return {
+            success: false,
+            requiresManualSync: true,
+            userid: userid,
+            cardnumber: cardnumber,
+            categorycode: isStaff ? 'ST' : 'PT',
+            script: `/home/marcos/EscuelaNaval/koha-create-user.sh "${email}" "PASSWORD_HIDDEN" "${nombre}" "${apellido}" "${isStaff}"`,
+            error: 'Koha API no disponible - requiere sincronización manual'
+        };
+
+    } catch (error) {
+        console.error(`❌ Error al crear usuario en Koha (${email}):`, error.message);
+
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Actualizar contraseña del usuario en DSpace
+ * @param {string} email - Email del usuario
+ * @param {string} newPassword - Nueva contraseña
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function actualizarPasswordDSpace(email, newPassword) {
+    try {
+        // Paso 1: Obtener token CSRF de DSpace
+        const statusResponse = await axios.get(
+            'http://172.27.72.64:8090/server/api/authn/status',
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const csrfToken = statusResponse.headers['dspace-xsrf-token'];
+        const cookies = statusResponse.headers['set-cookie'];
+
+        if (!csrfToken) {
+            throw new Error('No se pudo obtener token CSRF de DSpace');
+        }
+
+        // Paso 2: Autenticarse como admin con CSRF token
+        const adminLoginResponse = await axios.post(
+            'http://172.27.72.64:8090/server/api/authn/login',
+            {
+                email: 'admin@biblioteca.local',
+                password: 'admin123'
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken,
+                    'Cookie': cookies ? cookies.join('; ') : ''
+                }
+            }
+        );
+
+        const adminToken = adminLoginResponse.headers['authorization'];
+        if (!adminToken) {
+            throw new Error('No se pudo obtener token de administrador');
+        }
+
+        // Buscar el usuario por email
+        const searchResponse = await axios.get(
+            `http://172.27.72.64:8090/server/api/eperson/epersons/search/byEmail?email=${encodeURIComponent(email)}`,
+            {
+                headers: {
+                    'Authorization': adminToken
+                }
+            }
+        );
+
+        const userId = searchResponse.data?.id || searchResponse.data?.uuid;
+        if (!userId) {
+            console.log(`⚠️ Usuario no encontrado en DSpace: ${email}`);
+            return { success: false, error: 'Usuario no encontrado' };
+        }
+
+        // Actualizar contraseña
+        await axios.patch(
+            `http://172.27.72.64:8090/server/api/eperson/epersons/${userId}`,
+            {
+                password: newPassword
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': adminToken
+                }
+            }
+        );
+
+        console.log(`✅ Contraseña actualizada en DSpace: ${email}`);
+        return { success: true };
+
+    } catch (error) {
+        console.error(`❌ Error al actualizar contraseña en DSpace (${email}):`, error.message);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Actualizar contraseña del usuario en Koha
+ * @param {string} email - Email del usuario
+ * @param {string} newPassword - Nueva contraseña
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function actualizarPasswordKoha(email, newPassword) {
+    try {
+        // NOTA: Koha API REST no está disponible, se requiere actualización manual
+        // La contraseña debe actualizarse manualmente en Koha usando el script:
+        // /home/marcos/EscuelaNaval/koha-update-password.sh
+
+        console.log(`⚠️ Koha: Actualización manual de contraseña requerida para ${email}`);
+        console.log(`   Ejecutar: /home/marcos/EscuelaNaval/koha-update-password.sh "${email}" "NEW_PASSWORD"`);
+
+        return {
+            success: false,
+            requiresManualSync: true,
+            script: `/home/marcos/EscuelaNaval/koha-update-password.sh "${email}" "PASSWORD_HIDDEN"`,
+            error: 'Koha API no disponible - requiere actualización manual'
+        };
+
+    } catch (error) {
+        console.error(`❌ Error al actualizar contraseña en Koha (${email}):`, error.message);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
 // Endpoint: Login centralizado (con rate limiting estricto)
 app.post('/api/login', loginLimiter, async (req, res) => {
     const { email, password } = req.body;
@@ -791,13 +1054,45 @@ app.post('/api/usuarios', verificarAutenticacion, verificarAdmin, async (req, re
 
         const nuevoUsuario = result.rows[0];
 
+        // ============================================================================
+        // SINCRONIZACIÓN AUTOMÁTICA CON SISTEMAS EXTERNOS
+        // ============================================================================
+
+        console.log(`\n📤 Sincronizando usuario ${email} con sistemas externos...`);
+
+        const sincronizacionResultados = {
+            dspace: { intentado: false, exitoso: false },
+            koha: { intentado: false, exitoso: false }
+        };
+
+        // Sincronizar con DSpace si tiene privilegios
+        if (privs.dspace) {
+            console.log(`   → Creando usuario en DSpace...`);
+            sincronizacionResultados.dspace.intentado = true;
+            const dspaceResult = await crearUsuarioDSpace(email, password, nombre, apellido);
+            sincronizacionResultados.dspace.exitoso = dspaceResult.success;
+        }
+
+        // Sincronizar con Koha si tiene privilegios (staff o opac)
+        if (privs.koha_staff || privs.koha_opac) {
+            console.log(`   → Creando usuario en Koha...`);
+            sincronizacionResultados.koha.intentado = true;
+            const kohaResult = await crearUsuarioKoha(email, password, nombre, apellido, privs.koha_staff);
+            sincronizacionResultados.koha.exitoso = kohaResult.success;
+        }
+
+        console.log(`✅ Sincronización completada:`);
+        console.log(`   - DSpace: ${sincronizacionResultados.dspace.intentado ? (sincronizacionResultados.dspace.exitoso ? '✅' : '❌') : '⊘ No aplica'}`);
+        console.log(`   - Koha: ${sincronizacionResultados.koha.intentado ? (sincronizacionResultados.koha.exitoso ? '✅' : '❌') : '⊘ No aplica'}\n`);
+
         res.status(201).json({
             success: true,
             message: 'Usuario creado exitosamente',
             usuario: {
                 ...nuevoUsuario,
                 privilegios: privs
-            }
+            },
+            sincronizacion: sincronizacionResultados
         });
     } catch (error) {
         console.error('Error al crear usuario:', error);
@@ -884,6 +1179,44 @@ app.put('/api/usuarios/:id', verificarAutenticacion, verificarAdmin, async (req,
         const result = await query(updateQuery, values);
 
         const u = result.rows[0];
+
+        // ============================================================================
+        // SINCRONIZACIÓN AUTOMÁTICA DE CONTRASEÑA CON SISTEMAS EXTERNOS
+        // ============================================================================
+
+        // Si se actualizó la contraseña, sincronizar con sistemas externos
+        if (password) {
+            console.log(`\n🔄 Sincronizando cambio de contraseña para ${u.email}...`);
+
+            const sincronizacionResultados = {
+                dspace: { intentado: false, exitoso: false },
+                koha: { intentado: false, exitoso: false }
+            };
+
+            // Obtener privilegios del usuario actualizado
+            const privs = mapearPrivilegios(u);
+
+            // Sincronizar con DSpace si tiene privilegios
+            if (privs.dspace) {
+                console.log(`   → Actualizando contraseña en DSpace...`);
+                sincronizacionResultados.dspace.intentado = true;
+                const dspaceResult = await actualizarPasswordDSpace(u.email, password);
+                sincronizacionResultados.dspace.exitoso = dspaceResult.success;
+            }
+
+            // Sincronizar con Koha si tiene privilegios (staff o opac)
+            if (privs.koha_staff || privs.koha_opac) {
+                console.log(`   → Actualizando contraseña en Koha...`);
+                sincronizacionResultados.koha.intentado = true;
+                const kohaResult = await actualizarPasswordKoha(u.email, password);
+                sincronizacionResultados.koha.exitoso = kohaResult.success;
+            }
+
+            console.log(`✅ Sincronización de contraseña completada:`);
+            console.log(`   - DSpace: ${sincronizacionResultados.dspace.intentado ? (sincronizacionResultados.dspace.exitoso ? '✅' : '❌') : '⊘ No aplica'}`);
+            console.log(`   - Koha: ${sincronizacionResultados.koha.intentado ? (sincronizacionResultados.koha.exitoso ? '✅' : '❌') : '⊘ No aplica'}\n`);
+        }
+
         res.json({
             success: true,
             message: 'Usuario actualizado exitosamente',

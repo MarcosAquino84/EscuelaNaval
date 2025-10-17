@@ -492,8 +492,14 @@
                 if (data.success) {
                     showSuccess(`¡Bienvenido ${data.usuario.nombreCompleto}!`);
 
+                    // Guardar contraseña temporalmente para auto-login (solo en sessionStorage, no persiste)
+                    const usuarioConPassword = {
+                        ...data.usuario,
+                        password: password
+                    };
+
                     // Guardar datos en sessionStorage
-                    sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
+                    sessionStorage.setItem('usuario', JSON.stringify(usuarioConPassword));
                     sessionStorage.setItem('privilegios', JSON.stringify(data.privilegios));
                     sessionStorage.setItem('sistemas_disponibles', JSON.stringify(data.sistemas_disponibles));
 
