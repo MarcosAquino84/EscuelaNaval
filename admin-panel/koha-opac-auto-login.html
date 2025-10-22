@@ -243,25 +243,33 @@
                 window.location.href = 'index.html';
             }, 2000);
         } else {
-            status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${usuario.nombreCompleto}`;
+            // Mapeo de emails a userids de Koha (ACTUALIZADOS)
+            const kohaUserMap = {
+                'admin@biblioteca.local': 'admin',
+                'marcos@biblioteca.local': 'mbiblioteca',
+                'alumno@biblioteca.local': 'abiblioteca',
+                'maria.garcia@estudiante.local': 'mgarcia',
+                'psic.martinez@henm.edu.mx': 'pmartinez',
+                'psic.lopez@henm.edu.mx': 'plopez'
+            };
+
+            const kohaUserid = kohaUserMap[usuario.email] || usuario.email.split('@')[0];
+
+            // Detectar entorno y configurar URLs
+            const isNgrok = window.location.hostname.includes('ngrok');
+            const opacBaseUrl = isNgrok
+                ? window.location.origin + '/koha'
+                : 'http://172.27.72.64:8080';
+
+            status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${kohaUserid}`;
 
             // Crear formulario para enviar al OPAC
             setTimeout(() => {
                 status.innerHTML = '<i class="fas fa-key"></i> Enviando credenciales...';
 
-                // Mapeo de emails a userids de Koha
-                const kohaUserMap = {
-                    'admin@biblioteca.local': 'admin',
-                    'alumno@biblioteca.local': 'alumno',
-                    'marcos@biblioteca.local': 'Marcos',
-                    'maria.garcia@estudiante.local': 'maria.garcia'
-                };
-
-                const kohaUserid = kohaUserMap[usuario.email] || usuario.email.split('@')[0];
-
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = 'http://localhost:8080/cgi-bin/koha/opac-user.pl';
+                form.action = opacBaseUrl + '/cgi-bin/koha/opac-user.pl';
                 form.id = 'autoLoginForm';
 
                 // Campo de contexto Koha (REQUERIDO)
@@ -278,17 +286,17 @@
                 opField.value = 'cud-login';
                 form.appendChild(opField);
 
-                // Campo de usuario (nombre correcto: userid)
+                // Campo de usuario (nombre correcto: login_userid)
                 const useridField = document.createElement('input');
                 useridField.type = 'hidden';
-                useridField.name = 'userid';
+                useridField.name = 'login_userid';
                 useridField.value = kohaUserid;
                 form.appendChild(useridField);
 
-                // Campo de contraseña (nombre correcto: password)
+                // Campo de contraseña (nombre correcto: login_password)
                 const passwordField = document.createElement('input');
                 passwordField.type = 'hidden';
-                passwordField.name = 'password';
+                passwordField.name = 'login_password';
                 passwordField.value = usuario.password;
                 form.appendChild(passwordField);
 

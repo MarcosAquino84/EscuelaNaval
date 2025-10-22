@@ -26,12 +26,12 @@ services:
       # Configuración de red
       proxies__P__trusted__P__ipranges: '172.23.0, 172.27.0'
 
-      # URLs (ngrok - accesible desde Internet)
-      dspace__P__server__P__url: 'https://bolshevistically-prototypal-dorris.ngrok-free.dev/server'
-      dspace__P__ui__P__url: 'https://bolshevistically-prototypal-dorris.ngrok-free.dev/dspace'
+      # URLs (localhost - configuración local)
+      dspace__P__server__P__url: 'http://172.27.72.64:8090/server'
+      dspace__P__ui__P__url: 'http://172.27.72.64:4000'
 
-      # Permitir peticiones desde ngrok (CORS)
-      rest__P__cors__P__allowed__origins: 'https://bolshevistically-prototypal-dorris.ngrok-free.dev'
+      # Permitir peticiones desde localhost (CORS)
+      rest__P__cors__P__allowed__origins: 'http://localhost:4000, http://172.27.72.64:4000'
 
       # Configuración de idioma español
       default__P__locale: 'es'
@@ -99,10 +99,10 @@ services:
       DSPACE_UI_SSL: 'false'
       DSPACE_UI_HOST: '0.0.0.0'
       DSPACE_UI_PORT: '4000'
-      DSPACE_UI_NAMESPACE: '/dspace'
-      DSPACE_REST_SSL: 'true'
-      DSPACE_REST_HOST: 'bolshevistically-prototypal-dorris.ngrok-free.dev'
-      DSPACE_REST_PORT: '443'
+      DSPACE_UI_NAMESPACE: '/'
+      DSPACE_REST_SSL: 'false'
+      DSPACE_REST_HOST: '172.27.72.64'
+      DSPACE_REST_PORT: '8090'
       DSPACE_REST_NAMESPACE: '/server'
 
       # Configuración de idioma español
@@ -122,7 +122,7 @@ services:
     ports:
       - "4000:4000"
     # Especificar hosts permitidos en lugar de deshabilitar validación completamente
-    command: sh -c "yarn serve --host 0.0.0.0 --allowed-hosts bolshevistically-prototypal-dorris.ngrok-free.dev,localhost,172.27.72.64"
+    command: sh -c "yarn serve --host 0.0.0.0 --allowed-hosts localhost,172.27.72.64"
 
   # === AUTHENTICATION SERVICE ===
 

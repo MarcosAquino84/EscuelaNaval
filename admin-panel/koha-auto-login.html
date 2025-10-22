@@ -248,7 +248,7 @@
     </footer>
 
     <!-- Formulario oculto que se auto-enviará -->
-    <form id="kohaLoginForm" action="http://localhost/cgi-bin/koha/mainpage.pl" method="POST" style="display:none;">
+    <form id="kohaLoginForm" action="" method="POST" style="display:none;">
         <input type="hidden" name="op" value="cud-login">
         <input type="hidden" name="koha_login_context" value="intranet">
         <input type="text" name="login_userid" id="login_userid">
@@ -256,15 +256,26 @@
     </form>
 
     <script>
+        // Detectar entorno y configurar URLs
+        const isNgrok = window.location.hostname.includes('ngrok');
+        const staffBaseUrl = isNgrok
+            ? window.location.origin + '/koha-staff'
+            : 'http://172.27.72.64';
+
+        // Configurar action del formulario dinámicamente
+        document.getElementById('kohaLoginForm').action = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
+
         const statusMessage = document.getElementById('statusMessage');
         const errorContainer = document.getElementById('errorContainer');
 
-        // Mapeo de emails a userids de Koha
+        // Mapeo de emails a userids de Koha (ACTUALIZADOS CON USUARIOS REALES)
         const kohaUserMap = {
             'admin@biblioteca.local': 'admin',
-            'alumno@biblioteca.local': 'alumno',
-            'marcos@biblioteca.local': 'Marcos',
-            'maria.garcia@estudiante.local': 'maria.garcia'
+            'marcos@biblioteca.local': 'mbiblioteca',
+            'alumno@biblioteca.local': 'abiblioteca',
+            'maria.garcia@estudiante.local': 'mgarcia',
+            'psic.martinez@henm.edu.mx': 'pmartinez',
+            'psic.lopez@henm.edu.mx': 'plopez'
         };
 
         async function autoLoginKoha() {
@@ -299,7 +310,7 @@
 
                 // Redirigir a Koha después de 2 segundos
                 setTimeout(() => {
-                    window.location.href = 'http://localhost/cgi-bin/koha/mainpage.pl';
+                    window.location.href = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
                 }, 2000);
             }
         }
