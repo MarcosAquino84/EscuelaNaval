@@ -1,0 +1,149 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║  📚 GUÍA RÁPIDA: IMPORTAR LIBROS EN KOHA (3 MINUTOS)       ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+🎯 SOLUCIÓN AL ERROR 404: El catálogo está vacío, necesitas importar libros
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASO 1: ACCEDER A KOHA STAFF
+─────────────────────────────────
+
+1. Abre tu navegador
+2. Ve a esta URL:
+
+   http://localhost:8080/
+
+3. CREDENCIALES DE LOGIN:
+
+   Usuario: admin
+   Password: admin123
+
+   (Si no funciona, prueba con: Marcos / tu_password)
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASO 2: IR A HERRAMIENTAS DE IMPORTACIÓN
+─────────────────────────────────────────────
+
+1. En el menú superior, busca "Tools" (Herramientas)
+2. Click en "Stage MARC records for import"
+   (Preparar registros MARC para importar)
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASO 3: SUBIR EL ARCHIVO
+─────────────────────────────
+
+1. Click en "Choose file" o "Seleccionar archivo"
+
+2. Navega a esta ubicación:
+   /home/marcos/EscuelaNaval/libros-marina-mexico.mrc.xml
+
+3. CONFIGURACIÓN:
+   • Record type: Bibliographic (Bibliográfico)
+   • Character encoding: UTF-8
+   • Format: MARCXML
+
+4. Click en "Upload file" (Subir archivo)
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASO 4: IMPORTAR AL CATÁLOGO
+─────────────────────────────────
+
+1. Koha mostrará: "15 records found" ✅
+
+2. Click en "Import this batch into the catalog"
+
+3. OPCIONES:
+   ☑ Check for matches: Yes (Buscar duplicados)
+   ☑ Add items: Yes (Agregar items automáticamente)
+
+4. Click en "Import"
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASO 5: ESPERAR Y VERIFICAR
+────────────────────────────────
+
+1. La importación tardará 1-2 minutos
+2. Espera 5 minutos más para que Zebra reindexe
+3. Ve al OPAC: http://localhost/
+4. Busca: "Marina"
+5. ¡Deberías ver 15 libros! ✅
+
+═══════════════════════════════════════════════════════════════
+
+📚 LIBROS QUE SE IMPORTARÁN:
+
+  Libros (10):
+  • Historia Marítima de México
+  • Fundamentos de Navegación Astronómica
+  • Derecho del Mar y Soberanía Nacional
+  • Estrategia Naval y Defensa de Costas
+  • Oceanografía Física del Golfo de México
+  • Construcción y Mantenimiento de Buques
+  • La Armada de México en el Siglo XXI
+  • Tácticas de Operaciones Anfibias
+  • Meteorología Marina Aplicada
+  • Operaciones de Búsqueda y Rescate (SAR)
+
+  Documentales DVD (5):
+  • Armada de México: 200 Años de Historia Naval
+  • Guardianes del Mar: Operaciones SAR
+  • Poder Naval: Los Buques de la Armada
+  • Infantería de Marina: Élite Anfibia
+  • Océanos de México: Protección Marina
+
+═══════════════════════════════════════════════════════════════
+
+🔍 DESPUÉS DE IMPORTAR - PRUEBAS:
+
+En el OPAC busca:
+• "Marina" → Todos los materiales
+• "Naval" → Temas navales
+• "Armada" → Armada de México
+• "Documental" → Solo DVDs
+• "NAV001" → Por código de barras
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ SI ALGO FALLA:
+
+1. Verifica que el archivo existe:
+   ls -lh /home/marcos/EscuelaNaval/libros-marina-mexico.mrc.xml
+
+2. Si no aparecen después de 5 minutos, fuerza la reindexación:
+   sudo koha-rebuild-zebra -f -v biblioteca
+
+3. Verifica logs:
+   sudo tail -50 /var/log/koha/biblioteca/intranet-error.log
+
+═══════════════════════════════════════════════════════════════
+
+✅ RESULTADO ESPERADO:
+
+Después de importar:
+✅ Error 404 desaparecerá
+✅ Búsquedas funcionarán
+✅ Catálogo completo y funcional
+✅ Los estudiantes podrán buscar y solicitar préstamos
+
+═══════════════════════════════════════════════════════════════
+
+🌐 URLs DE ACCESO:
+
+Local:
+• OPAC: http://localhost/
+• Staff: http://localhost:8080/
+
+Público (ngrok):
+• OPAC: https://bolshevistically-prototypal-dorris.ngrok-free.dev/koha/
+• Staff: https://bolshevistically-prototypal-dorris.ngrok-free.dev/koha-staff/
+
+═══════════════════════════════════════════════════════════════
+
+¡LISTO! EN 3 MINUTOS TENDRÁS TU CATÁLOGO FUNCIONANDO 🎉

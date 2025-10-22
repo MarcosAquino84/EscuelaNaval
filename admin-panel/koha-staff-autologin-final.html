@@ -3,25 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accediendo a Koha Staff</title>
-
-    <!-- Google Fonts - Montserrat -->
+    <title>Koha Staff - Auto Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
         :root {
-            /* Paleta institucional mexicana */
-            --primary-color: #9D2449;      /* Guinda institucional */
-            --secondary-color: #2E7D32;    /* Verde institucional */
-            --accent-gold: #D4AF37;        /* Dorado emblemas */
-            --accent-red: #CE1126;         /* Rojo bandera */
-            --text-dark: #333333;          /* Gris oscuro texto */
-            --white: #FFFFFF;              /* Blanco */
-            --bg-light: #F5F5F5;           /* Fondo claro */
+            --primary-color: #9D2449;
+            --secondary-color: #2E7D32;
+            --accent-gold: #D4AF37;
+            --accent-red: #CE1126;
+            --text-dark: #333333;
+            --white: #FFFFFF;
+            --bg-light: #F5F5F5;
         }
 
         * {
@@ -39,7 +34,6 @@
             flex-direction: column;
         }
 
-        /* Barra tricolor superior */
         .top-bar {
             height: 8px;
             width: 100%;
@@ -56,7 +50,6 @@
             z-index: 9999;
         }
 
-        /* Super Header - Gobierno de México */
         .super-header {
             width: 100%;
             background-color: #691C32;
@@ -71,7 +64,6 @@
             display: block;
         }
 
-        /* Sub Header - Colegio Naval */
         .sub-header {
             width: 100%;
             background-color: #E8DCC8;
@@ -87,7 +79,6 @@
             display: block;
         }
 
-        /* Container de loading */
         .loading-container {
             flex: 1;
             display: flex;
@@ -176,13 +167,30 @@
             font-size: 0.9rem;
         }
 
-        .alert-danger {
-            background-color: #FDECEA;
-            border-left-color: var(--accent-red);
-            color: #7A1D1D;
+        .alert-info {
+            background-color: #E3F2FD;
+            border-left-color: #2196F3;
+            color: #1565C0;
         }
 
-        /* Footer institucional */
+        .btn-manual {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-manual:hover {
+            background: #7A1D3A;
+            color: white;
+        }
+
         .footer {
             width: 100%;
             background-color: #691C32;
@@ -195,95 +203,46 @@
             height: auto;
             display: block;
         }
-
-        @media (max-width: 768px) {
-            .super-header img {
-                height: 45px;
-            }
-
-            .loading-card {
-                padding: 30px 25px;
-            }
-
-            h2 {
-                font-size: 1.2rem;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Barra tricolor superior -->
     <div class="top-bar"></div>
 
-    <!-- Super Header - Gobierno de México -->
     <div class="super-header">
         <img src="SuperHeader.png" alt="Gobierno de México">
     </div>
 
-    <!-- Sub Header - Colegio Naval -->
     <div class="sub-header">
         <img src="HeaderColegioNaval.png" alt="Universidad Naval - HENM">
     </div>
 
-    <!-- Container de loading -->
     <div class="loading-container">
         <div class="loading-card">
             <div class="logo-box">
                 <i class="fas fa-user-cog"></i>
             </div>
-            <div class="spinner"></div>
+            <div class="spinner" id="spinner"></div>
             <h2>Accediendo a Koha Staff</h2>
             <p>Interfaz de Administración</p>
             <div class="status" id="statusMessage">
                 <i class="fas fa-circle-notch fa-spin"></i>
                 Iniciando sesión automáticamente...
             </div>
-            <div id="errorContainer" class="alert alert-danger d-none"></div>
+            <div id="infoContainer" class="alert alert-info d-none">
+                <p><strong>⚠️ Auto-login no disponible</strong></p>
+                <p>Serás redirigido a Koha Staff. Por favor, usa estas credenciales:</p>
+                <p><strong>Usuario:</strong> admin<br><strong>Password:</strong> admin123</p>
+                <a href="http://localhost:8080/cgi-bin/koha/mainpage.pl" class="btn-manual">Continuar a Koha Staff</a>
+            </div>
         </div>
     </div>
 
-    <!-- Footer institucional -->
     <footer class="footer">
         <img src="Footer.png" alt="Footer Institucional">
     </footer>
 
-    <!-- Formulario oculto que se auto-enviará -->
-    <form id="kohaLoginForm" action="" method="POST" style="display:none;">
-        <input type="hidden" name="op" value="cud-login">
-        <input type="hidden" name="koha_login_context" value="intranet">
-        <input type="text" name="login_userid" id="login_userid">
-        <input type="password" name="login_password" id="login_password">
-    </form>
-
     <script>
-        // Detectar entorno y configurar URLs
-        const isNgrok = window.location.hostname.includes('ngrok');
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-        let staffBaseUrl;
-        let loginUrl;
-
-        if (isNgrok) {
-            // Desde ngrok, usar path /koha-staff
-            staffBaseUrl = window.location.origin + '/koha-staff';
-            loginUrl = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
-        } else if (isLocalhost && window.location.port === '9000') {
-            // Desde proxy unificado local (puerto 9000)
-            staffBaseUrl = window.location.origin + '/koha-staff';
-            loginUrl = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
-        } else {
-            // Acceso directo a Koha (puerto 80)
-            staffBaseUrl = 'http://172.27.72.64';
-            loginUrl = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
-        }
-
-        // Configurar action del formulario dinámicamente
-        document.getElementById('kohaLoginForm').action = loginUrl;
-
-        const statusMessage = document.getElementById('statusMessage');
-        const errorContainer = document.getElementById('errorContainer');
-
-        // Mapeo de emails a userids de Koha (ACTUALIZADOS CON USUARIOS REALES)
+        // Mapeo de usuarios
         const kohaUserMap = {
             'admin@biblioteca.local': 'admin',
             'marcos@biblioteca.local': 'mbiblioteca',
@@ -293,45 +252,84 @@
             'psic.lopez@henm.edu.mx': 'plopez'
         };
 
-        async function autoLoginKoha() {
+        const statusMessage = document.getElementById('statusMessage');
+        const infoContainer = document.getElementById('infoContainer');
+        const spinner = document.getElementById('spinner');
+
+        function getKohaBaseUrl() {
+            // SIEMPRE usar la URL directa de Koha en localhost
+            // Esto asegura que las cookies se establezcan en el dominio correcto
+            return 'http://localhost:8080';
+        }
+
+        async function performLogin() {
             try {
-                // Obtener credenciales del sessionStorage
+                // Obtener credenciales
                 const usuario = JSON.parse(sessionStorage.getItem('usuario'));
 
                 if (!usuario || !usuario.email || !usuario.password) {
-                    throw new Error('No se encontraron credenciales válidas');
+                    console.log('No hay credenciales, redirigiendo...');
+                    showManualOption();
+                    return;
                 }
+
+                const kohaUserid = kohaUserMap[usuario.email] || usuario.email;
+                const kohaBaseUrl = getKohaBaseUrl();
+                const loginUrl = kohaBaseUrl + '/cgi-bin/koha/mainpage.pl';
+
+                console.log('Usando URL:', loginUrl);
+                console.log('Usuario:', kohaUserid);
 
                 statusMessage.innerHTML = '<i class="fas fa-key"></i> Preparando credenciales...';
 
-                // Mapear email a userid de Koha
-                const kohaUserid = kohaUserMap[usuario.email] || usuario.email;
+                // Crear FormData para el login
+                const formData = new URLSearchParams();
+                formData.append('op', 'cud-login');
+                formData.append('koha_login_context', 'intranet');
+                formData.append('login_userid', kohaUserid);
+                formData.append('login_password', usuario.password);
 
-                // Llenar el formulario oculto
-                document.getElementById('login_userid').value = kohaUserid;
-                document.getElementById('login_password').value = usuario.password;
+                statusMessage.innerHTML = '<i class="fas fa-paper-plane"></i> Enviando credenciales...';
 
-                statusMessage.innerHTML = '<i class="fas fa-paper-plane"></i> Enviando credenciales a Koha...';
+                // Hacer el login usando fetch con credentials: 'include' para manejar cookies
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString(),
+                    credentials: 'include', // CRUCIAL: incluir cookies
+                    redirect: 'manual' // No seguir redirects automáticamente
+                });
 
-                // Esperar un momento y enviar el formulario
-                setTimeout(() => {
-                    document.getElementById('kohaLoginForm').submit();
-                }, 1000);
+                console.log('Response status:', response.status);
+                console.log('Response type:', response.type);
+
+                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> Sesión establecida...';
+
+                // Pequeño delay para asegurar que la cookie se establezca
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                statusMessage.innerHTML = '<i class="fas fa-sync fa-spin"></i> Redirigiendo a Koha Staff...';
+
+                // Redirigir a Koha Staff en la misma ventana
+                // Esto asegura que las cookies se mantengan
+                window.location.href = kohaBaseUrl + '/cgi-bin/koha/mainpage.pl';
 
             } catch (error) {
-                console.error('Error:', error);
-                errorContainer.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${error.message}. Redirigiendo a Koha...`;
-                errorContainer.classList.remove('d-none');
-
-                // Redirigir a Koha después de 2 segundos
-                setTimeout(() => {
-                    window.location.href = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
-                }, 2000);
+                console.error('Error en auto-login:', error);
+                showManualOption();
             }
         }
 
-        // Ejecutar al cargar la página
-        window.addEventListener('DOMContentLoaded', autoLoginKoha);
+        function showManualOption() {
+            spinner.style.display = 'none';
+            statusMessage.classList.add('d-none');
+            infoContainer.classList.remove('d-none');
+        }
+
+        // Ejecutar al cargar
+        window.addEventListener('DOMContentLoaded', performLogin);
     </script>
 </body>
 </html>
