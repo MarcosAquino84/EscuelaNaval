@@ -543,13 +543,13 @@
             },
             koha_staff: {
                 nombre: 'Koha - Staff Interface',
-                descripcion: 'Sistema de Gestión Bibliotecaria',
+                descripcion: 'Sistema de Gestión Bibliotecaria (Login: admin/admin123)',
                 icon: 'fa-user-cog',
                 clase: 'koha',
                 btnClass: 'btn-koha',
-                url: 'koha-auto-login.html',
-                useAutoLogin: true,
-                type: 'page',
+                url: 'http://localhost:8080/cgi-bin/koha/mainpage.pl',
+                useAutoLogin: false,
+                type: 'external',
                 roles: ['administrador', 'profesor']
             },
             admin: {
