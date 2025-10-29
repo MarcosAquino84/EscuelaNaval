@@ -1,5 +1,5 @@
 # URL pública generada por ngrok
-# Fecha: mar 21 oct 2025 19:06:04 CST
+# Fecha: mié 29 oct 2025 10:25:53 CST
 # Arquitectura: Proxy Unificado en puerto 9000
 
 NGROK_BASE_URL=https://bolshevistically-prototypal-dorris.ngrok-free.dev
