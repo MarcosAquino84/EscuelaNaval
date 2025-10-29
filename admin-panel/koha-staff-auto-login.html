@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accediendo al OPAC - Koha</title>
+    <title>Accediendo a Koha Staff...</title>
 
     <!-- Google Fonts - Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,14 +14,13 @@
 
     <style>
         :root {
-            /* Paleta institucional mexicana */
-            --primary-color: #9D2449;      /* Guinda institucional */
-            --secondary-color: #2E7D32;    /* Verde institucional */
-            --accent-gold: #D4AF37;        /* Dorado emblemas */
-            --accent-red: #CE1126;         /* Rojo bandera */
-            --text-dark: #333333;          /* Gris oscuro texto */
-            --white: #FFFFFF;              /* Blanco */
-            --bg-light: #F5F5F5;           /* Fondo claro */
+            --primary-color: #9D2449;
+            --secondary-color: #2E7D32;
+            --accent-gold: #D4AF37;
+            --accent-red: #CE1126;
+            --text-dark: #333333;
+            --white: #FFFFFF;
+            --bg-light: #F5F5F5;
         }
 
         * {
@@ -39,7 +38,6 @@
             flex-direction: column;
         }
 
-        /* Barra tricolor superior */
         .top-bar {
             height: 8px;
             width: 100%;
@@ -56,7 +54,6 @@
             z-index: 9999;
         }
 
-        /* Super Header - Gobierno de México */
         .super-header {
             width: 100%;
             background-color: #691C32;
@@ -71,7 +68,6 @@
             display: block;
         }
 
-        /* Sub Header - Colegio Naval */
         .sub-header {
             width: 100%;
             background-color: #E8DCC8;
@@ -87,7 +83,6 @@
             display: block;
         }
 
-        /* Container de loading */
         .loading-container {
             flex: 1;
             display: flex;
@@ -168,7 +163,6 @@
             color: var(--primary-color);
         }
 
-        /* Footer institucional */
         .footer {
             width: 100%;
             background-color: #691C32;
@@ -186,11 +180,9 @@
             .super-header img {
                 height: 45px;
             }
-
             .loading-card {
                 padding: 30px 25px;
             }
-
             h2 {
                 font-size: 1.2rem;
             }
@@ -215,11 +207,11 @@
     <div class="loading-container">
         <div class="loading-card">
             <div class="logo-box">
-                <i class="fas fa-book-open"></i>
+                <i class="fas fa-user-cog"></i>
             </div>
             <div class="spinner"></div>
-            <h2>Accediendo al OPAC</h2>
-            <p>Catálogo Público - Koha</p>
+            <h2>Accediendo a Koha Staff</h2>
+            <p>Interfaz de Administración</p>
             <div class="status" id="status">
                 <i class="fas fa-circle-notch fa-spin"></i>
                 Preparando acceso...
@@ -243,7 +235,7 @@
                 window.location.href = 'index.html';
             }, 2000);
         } else {
-            // Mapeo de emails a userids de Koha (ACTUALIZADOS)
+            // Mapeo de emails a userids de Koha
             const kohaUserMap = {
                 'admin@biblioteca.local': 'admin',
                 'marcos@biblioteca.local': 'mbiblioteca',
@@ -257,24 +249,24 @@
 
             // Detectar entorno y configurar URLs
             // Usar window.location.origin para obtener el dominio actual (funciona con ngrok)
-            const opacBaseUrl = window.location.origin + '/koha';
+            const staffBaseUrl = window.location.origin + '/koha-staff';
 
             status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${kohaUserid}`;
 
-            // Crear formulario para enviar al OPAC
+            // Crear formulario para enviar al Staff Interface
             setTimeout(() => {
                 status.innerHTML = '<i class="fas fa-key"></i> Enviando credenciales...';
 
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = opacBaseUrl + '/cgi-bin/koha/opac-user.pl';
+                form.action = staffBaseUrl + '/cgi-bin/koha/mainpage.pl';
                 form.id = 'autoLoginForm';
 
-                // Campo de contexto Koha (REQUERIDO)
+                // Campo de contexto Koha (REQUERIDO para Staff)
                 const contextField = document.createElement('input');
                 contextField.type = 'hidden';
                 contextField.name = 'koha_login_context';
-                contextField.value = 'opac';
+                contextField.value = 'intranet';
                 form.appendChild(contextField);
 
                 // Campo de operación (REQUERIDO)
@@ -284,14 +276,14 @@
                 opField.value = 'cud-login';
                 form.appendChild(opField);
 
-                // Campo de usuario (nombre correcto: login_userid)
+                // Campo de usuario
                 const useridField = document.createElement('input');
                 useridField.type = 'hidden';
                 useridField.name = 'login_userid';
                 useridField.value = kohaUserid;
                 form.appendChild(useridField);
 
-                // Campo de contraseña (nombre correcto: login_password)
+                // Campo de contraseña
                 const passwordField = document.createElement('input');
                 passwordField.type = 'hidden';
                 passwordField.name = 'login_password';
@@ -301,7 +293,7 @@
                 // Agregar formulario al body y enviarlo
                 document.body.appendChild(form);
 
-                status.innerHTML = `<i class="fas fa-check-circle"></i> Redirigiendo al OPAC... (Usuario: ${kohaUserid})`;
+                status.innerHTML = `<i class="fas fa-check-circle"></i> Redirigiendo a Koha Staff... (Usuario: ${kohaUserid})`;
 
                 setTimeout(() => {
                     form.submit();
