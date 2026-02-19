@@ -109,7 +109,7 @@
         const message = document.getElementById('message');
 
         // Guardar credenciales para auto-fill
-        sessionStorage.setItem('koha_autofill', JSON.stringify({
+        localStorage.setItem('koha_autofill', JSON.stringify({
             userid: 'admin',
             password: 'admin123',
             timestamp: Date.now()

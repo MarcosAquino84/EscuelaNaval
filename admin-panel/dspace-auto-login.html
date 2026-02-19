@@ -248,102 +248,39 @@
     </footer>
 
     <script>
-        const DSPACE_API_BASE = '/server/api';
-        const DSPACE_URL = '/dspace/';
+        // DSpace Angular accesible directamente en su puerto
+        const DSPACE_URL = 'http://' + window.location.hostname + ':4000';
 
-        async function autoLoginDSpace() {
+        function autoLoginDSpace() {
             const statusMessage = document.getElementById('statusMessage');
-            const errorContainer = document.getElementById('errorContainer');
 
-            try {
-                // Obtener credenciales del sessionStorage
-                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-                if (!usuario || !usuario.email || !usuario.password) {
-                    throw new Error('No se encontraron credenciales válidas. Por favor, inicia sesión primero.');
-                }
-
-                statusMessage.innerHTML = '<i class="fas fa-user"></i> Usuario: ' + usuario.email;
-                await sleep(500);
-
-                // Paso 1: Obtener CSRF token
-                statusMessage.innerHTML = '<i class="fas fa-shield-alt"></i> Obteniendo token de seguridad...';
-
-                const statusResponse = await fetch(`${DSPACE_API_BASE}/authn/status`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!statusResponse.ok) {
-                    throw new Error('Error al obtener token de seguridad');
-                }
-
-                // Extraer CSRF token del header
-                const csrfToken = statusResponse.headers.get('DSPACE-XSRF-TOKEN');
-                console.log('CSRF Token obtenido:', csrfToken);
-
-                // Paso 2: Autenticar con DSpace API
-                statusMessage.innerHTML = '<i class="fas fa-key"></i> Autenticando con DSpace...';
-                await sleep(500);
-
-                const loginResponse = await fetch(`${DSPACE_API_BASE}/authn/login`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Accept': 'application/json',
-                        'X-XSRF-TOKEN': csrfToken
-                    },
-                    body: `user=${encodeURIComponent(usuario.email)}&password=${encodeURIComponent(usuario.password)}`
-                });
-
-                if (!loginResponse.ok) {
-                    const errorText = await loginResponse.text();
-                    console.error('Error de autenticación:', loginResponse.status, errorText);
-                    throw new Error(`Autenticación fallida: ${loginResponse.status}`);
-                }
-
-                // Verificar que la autenticación fue exitosa
-                const authData = await loginResponse.json();
-                console.log('Respuesta de autenticación:', authData);
-
-                if (authData.authenticated) {
-                    statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> Autenticación exitosa!';
-                    await sleep(800);
-
-                    // Redirigir a DSpace
-                    statusMessage.innerHTML = '<i class="fas fa-arrow-right"></i> Redirigiendo a DSpace...';
-                    await sleep(500);
-
-                    window.location.href = DSPACE_URL;
-                } else {
-                    throw new Error('La autenticación no fue exitosa');
-                }
-
-            } catch (error) {
-                console.error('Error en auto-login:', error);
-                errorContainer.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${error.message}`;
-                errorContainer.classList.remove('d-none');
-
-                // Dar opción de continuar manualmente
-                setTimeout(() => {
-                    if (confirm('¿Deseas continuar a DSpace de todas formas? (Deberás iniciar sesión manualmente)')) {
-                        window.location.href = DSPACE_URL;
-                    } else {
-                        window.location.href = 'dashboard.html';
-                    }
-                }, 2000);
+            if (!usuario) {
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> No hay sesión activa. Redirigiendo al login...';
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                return;
             }
+
+            statusMessage.innerHTML = '<i class="fas fa-user"></i> Usuario: ' + usuario.email;
+
+            setTimeout(() => {
+                statusMessage.innerHTML = '<i class="fas fa-arrow-right"></i> Abriendo DSpace en nueva pestaña...';
+                setTimeout(() => {
+                    // Abrir en nueva pestaña y volver al dashboard
+                    const a = document.createElement('a');
+                    a.href = DSPACE_URL;
+                    a.target = '_blank';
+                    a.rel = 'noopener';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                }, 500);
+            }, 1000);
         }
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // Ejecutar al cargar la página
         window.addEventListener('DOMContentLoaded', autoLoginDSpace);
     </script>
 </body>

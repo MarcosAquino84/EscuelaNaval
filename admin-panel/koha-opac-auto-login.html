@@ -233,8 +233,8 @@
     </footer>
 
     <script>
-        // Obtener datos del usuario desde sessionStorage
-        const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+        // Obtener datos del usuario desde localStorage
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
         const status = document.getElementById('status');
 
         if (!usuario) {
@@ -255,9 +255,8 @@
 
             const kohaUserid = kohaUserMap[usuario.email] || usuario.email.split('@')[0];
 
-            // Detectar entorno y configurar URLs
-            // Usar window.location.origin para obtener el dominio actual (funciona con ngrok)
-            const opacBaseUrl = window.location.origin + '/koha';
+            // URL directa a Koha OPAC (nativo en WSL)
+            const opacBaseUrl = 'http://' + window.location.hostname + ':8080';
 
             status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${kohaUserid}`;
 
@@ -298,13 +297,17 @@
                 passwordField.value = usuario.password;
                 form.appendChild(passwordField);
 
-                // Agregar formulario al body y enviarlo
+                // Abrir en nueva pestaña y volver al dashboard
+                form.target = '_blank';
                 document.body.appendChild(form);
 
-                status.innerHTML = `<i class="fas fa-check-circle"></i> Redirigiendo al OPAC... (Usuario: ${kohaUserid})`;
+                status.innerHTML = `<i class="fas fa-check-circle"></i> Abriendo OPAC en nueva pestaña... (Usuario: ${kohaUserid})`;
 
                 setTimeout(() => {
                     form.submit();
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
                 }, 1000);
             }, 1500);
         }

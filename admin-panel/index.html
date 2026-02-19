@@ -492,18 +492,18 @@
                 if (data.success) {
                     showSuccess(`¡Bienvenido ${data.usuario.nombreCompleto}!`);
 
-                    // Guardar contraseña temporalmente para auto-login (solo en sessionStorage, no persiste)
+                    // Guardar contraseña temporalmente para auto-login (solo en localStorage, no persiste)
                     const usuarioConPassword = {
                         ...data.usuario,
                         password: password
                     };
 
-                    // Guardar datos en sessionStorage
-                    sessionStorage.setItem('usuario', JSON.stringify(usuarioConPassword));
-                    sessionStorage.setItem('privilegios', JSON.stringify(data.privilegios));
-                    sessionStorage.setItem('sistemas_disponibles', JSON.stringify(data.sistemas_disponibles));
+                    // Guardar datos en localStorage
+                    localStorage.setItem('usuario', JSON.stringify(usuarioConPassword));
+                    localStorage.setItem('privilegios', JSON.stringify(data.privilegios));
+                    localStorage.setItem('sistemas_disponibles', JSON.stringify(data.sistemas_disponibles));
 
-                    console.log('Data saved to sessionStorage, redirecting to dashboard...');
+                    console.log('Data saved to localStorage, redirecting to dashboard...');
 
                     // Redirigir al dashboard
                     setTimeout(() => {

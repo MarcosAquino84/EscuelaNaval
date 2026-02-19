@@ -265,7 +265,7 @@
         async function performLogin() {
             try {
                 // Obtener credenciales
-                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+                const usuario = JSON.parse(localStorage.getItem('usuario'));
 
                 if (!usuario || !usuario.email || !usuario.password) {
                     console.log('No hay credenciales, redirigiendo...');

@@ -1,6 +1,15 @@
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
 # Logs
 *.log
 logs/
+ngrok-auth.log
 
 # Docker volumes data
 dspace/data/*
@@ -18,3 +27,7 @@ postgresql/data/*
 # OS files
 .DS_Store
 Thumbs.db
+
+# ngrok
+ngrok.log
+ngrok-url.txt

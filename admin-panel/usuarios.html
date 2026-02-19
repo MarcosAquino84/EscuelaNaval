@@ -663,7 +663,7 @@
 
         // Verificar que el usuario sea administrador
         window.addEventListener('DOMContentLoaded', function() {
-            const usuario = sessionStorage.getItem('usuario');
+            const usuario = localStorage.getItem('usuario');
 
             if (!usuario) {
                 window.location.href = 'index.html';

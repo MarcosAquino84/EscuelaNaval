@@ -203,7 +203,7 @@
         async function performAutoLogin() {
             try {
                 // Obtener credenciales
-                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+                const usuario = JSON.parse(localStorage.getItem('usuario'));
 
                 if (!usuario || !usuario.email || !usuario.password) {
                     throw new Error('No se encontraron credenciales válidas');

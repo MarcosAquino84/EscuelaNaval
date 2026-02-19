@@ -317,8 +317,8 @@
 
         async function autoLoginKoha() {
             try {
-                // Obtener credenciales del sessionStorage
-                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+                // Obtener credenciales del localStorage
+                const usuario = JSON.parse(localStorage.getItem('usuario'));
 
                 if (!usuario || !usuario.email || !usuario.password) {
                     throw new Error('No se encontraron credenciales válidas. Por favor, inicia sesión desde el dashboard.');
