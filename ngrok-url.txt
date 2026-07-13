@@ -1,12 +1,1 @@
-# URL pública generada por ngrok
-# Fecha: mar 21 oct 2025 19:06:04 CST
-# Arquitectura: Proxy Unificado en puerto 9000
-
-NGROK_BASE_URL=https://bolshevistically-prototypal-dorris.ngrok-free.dev
-
-# Servicios disponibles:
-ADMIN_PANEL=https://bolshevistically-prototypal-dorris.ngrok-free.dev/
-DSPACE=https://bolshevistically-prototypal-dorris.ngrok-free.dev/dspace/
-KOHA_OPAC=https://bolshevistically-prototypal-dorris.ngrok-free.dev/koha/
-KOHA_STAFF=https://bolshevistically-prototypal-dorris.ngrok-free.dev/koha-staff/
-AUTH_API=https://bolshevistically-prototypal-dorris.ngrok-free.dev/api/
+﻿https://pouch-earwig-boxy.ngrok-free.dev

@@ -255,61 +255,55 @@
 
             const kohaUserid = kohaUserMap[usuario.email] || usuario.email.split('@')[0];
 
-            // URL directa a Koha OPAC (nativo en WSL)
-            const opacBaseUrl = 'http://' + window.location.hostname + ':8080';
+            // Koha 24.05+ exige token CSRF en el login: siempre pasamos por el
+            // proxy del panel (/koha/) para poder leerlo desde el mismo origen
+            const opacBaseUrl = window.location.origin + '/koha';
 
             status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${kohaUserid}`;
 
-            // Crear formulario para enviar al OPAC
-            setTimeout(() => {
+            async function autoLogin() {
+                status.innerHTML = '<i class="fas fa-key"></i> Obteniendo token de sesión...';
+
+                // 1. Cargar la portada del OPAC para obtener csrf_token + cookie de sesión
+                let csrfToken = '';
+                try {
+                    const resp = await fetch(opacBaseUrl + '/cgi-bin/koha/opac-main.pl', { credentials: 'include' });
+                    const html = await resp.text();
+                    const match = html.match(/name="csrf_token"\s+value="([^"]+)"/);
+                    if (match) csrfToken = match[1];
+                } catch (e) {
+                    console.error('No se pudo obtener csrf_token:', e);
+                }
+
                 status.innerHTML = '<i class="fas fa-key"></i> Enviando credenciales...';
 
+                // 2. Enviar el formulario de login con el token
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = opacBaseUrl + '/cgi-bin/koha/opac-user.pl';
                 form.id = 'autoLoginForm';
 
-                // Campo de contexto Koha (REQUERIDO)
-                const contextField = document.createElement('input');
-                contextField.type = 'hidden';
-                contextField.name = 'koha_login_context';
-                contextField.value = 'opac';
-                form.appendChild(contextField);
+                const campos = {
+                    koha_login_context: 'opac',
+                    login_op: 'cud-login',
+                    csrf_token: csrfToken,
+                    login_userid: kohaUserid,
+                    login_password: usuario.password
+                };
+                for (const [name, value] of Object.entries(campos)) {
+                    const field = document.createElement('input');
+                    field.type = 'hidden';
+                    field.name = name;
+                    field.value = value;
+                    form.appendChild(field);
+                }
 
-                // Campo de operación (REQUERIDO)
-                const opField = document.createElement('input');
-                opField.type = 'hidden';
-                opField.name = 'op';
-                opField.value = 'cud-login';
-                form.appendChild(opField);
-
-                // Campo de usuario (nombre correcto: login_userid)
-                const useridField = document.createElement('input');
-                useridField.type = 'hidden';
-                useridField.name = 'login_userid';
-                useridField.value = kohaUserid;
-                form.appendChild(useridField);
-
-                // Campo de contraseña (nombre correcto: login_password)
-                const passwordField = document.createElement('input');
-                passwordField.type = 'hidden';
-                passwordField.name = 'login_password';
-                passwordField.value = usuario.password;
-                form.appendChild(passwordField);
-
-                // Abrir en nueva pestaña y volver al dashboard
-                form.target = '_blank';
                 document.body.appendChild(form);
+                status.innerHTML = `<i class="fas fa-check-circle"></i> Ingresando al OPAC... (Usuario: ${kohaUserid})`;
+                setTimeout(() => form.submit(), 500);
+            }
 
-                status.innerHTML = `<i class="fas fa-check-circle"></i> Abriendo OPAC en nueva pestaña... (Usuario: ${kohaUserid})`;
-
-                setTimeout(() => {
-                    form.submit();
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 500);
-                }, 1000);
-            }, 1500);
+            setTimeout(autoLogin, 1000);
         }
     </script>
 </body>

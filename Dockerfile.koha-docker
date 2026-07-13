@@ -1,0 +1,44 @@
+# Koha real dockerizado — paquetes oficiales koha-common (Koha Community)
+# Reemplaza la instalación nativa en WSL Ubuntu que se perdió.
+# OPAC: puerto 8080 (interno) | Staff/Intranet: puerto 8081 (interno)
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg \
+    ca-certificates \
+    apache2 \
+    mariadb-client \
+    locales \
+    && rm -rf /var/lib/apt/lists/*
+
+# Locale español (el sistema se usa en español)
+RUN sed -i 's/# es_ES.UTF-8/es_ES.UTF-8/; s/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen \
+    && locale-gen
+
+# Repositorio oficial de Koha Community (rama estable)
+RUN wget -q -O /etc/apt/trusted.gpg.d/koha.asc https://debian.koha-community.org/koha/gpg.asc \
+    && echo "deb https://debian.koha-community.org/koha stable main" > /etc/apt/sources.list.d/koha.list
+
+RUN apt-get update && apt-get install -y koha-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Módulos de Apache que requiere Koha.
+# mpm-itk (cambio de usuario por petición) no funciona dentro de contenedores
+# (los workers pierden CAP_SETUID/SETGID); se deshabilita y Apache corre
+# directamente como el usuario de la instancia (ver entrypoint).
+RUN a2enmod rewrite cgi headers proxy_http \
+    && a2dismod mpm_itk
+
+# Puertos internos: 8080 OPAC, 8081 Intranet (Staff)
+RUN sed -i 's/^Listen 80$/Listen 8080\nListen 8081/' /etc/apache2/ports.conf
+
+COPY koha-docker-entrypoint.sh /usr/local/bin/entrypoint.sh
+# Normalizar fin de línea por si el archivo viene de Windows (CRLF rompe bash)
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE 8080 8081
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -57,6 +57,9 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const axios = require('axios');
+
+// Base del API de DSpace (contenedor en la red de Docker; ver docker-compose)
+const DSPACE_API = process.env.DSPACE_API_URL || 'http://dspace:8080/server/api';
 const bcrypt = require('bcryptjs');
 const FormData = require('form-data');
 const rateLimit = require('express-rate-limit');
@@ -72,15 +75,15 @@ const PORT = 3000;
 // Lista de orígenes permitidos (CORS)
 const allowedOrigins = [
     'http://localhost:8088',
-    'http://172.27.72.64:8088',
     'http://localhost:4000',
-    'http://172.27.72.64:4000',
-    'http://localhost:8080',
-    'http://172.27.72.64:8080',
+    'http://localhost:8082',
     'http://localhost:8101',
-    'http://172.27.72.64:8101',
-    'https://bolshevistically-prototypal-dorris.ngrok-free.dev'
+    'https://pouch-earwig-boxy.ngrok-free.dev'
 ];
+// URL pública adicional (ngrok) configurable sin tocar código
+if (process.env.PUBLIC_URL) {
+    allowedOrigins.push(process.env.PUBLIC_URL);
+}
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -301,13 +304,15 @@ async function verificarPassword(passwordIngresada, passwordHash) {
 // Función para autenticar en DSpace (OPCIONAL - no crítica)
 async function autenticarDSpace(email, password) {
     try {
-        const response = await axios.post('http://172.27.72.64:8090/server/api/authn/login', {
+        const dspaceApi = process.env.DSPACE_API_URL || 'http://dspace:8080/server/api';
+        const response = await axios.post(`${dspaceApi}/authn/login`, {
             email: email,
             password: password
         }, {
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 5000 // llamada opcional: no debe bloquear el login
         });
 
         if (response.status === 200 && response.headers['authorization']) {
@@ -339,14 +344,16 @@ async function autenticarKoha(userid, password) {
         const kohaUserid = kohaUserMap[userid] || userid;
 
         // Intentar login en Koha Staff Interface
+        const kohaStaffUrl = process.env.KOHA_STAFF_URL || 'http://koha:8081';
         const response = await axios.post(
-            'http://172.27.72.64/cgi-bin/koha/mainpage.pl',
+            `${kohaStaffUrl}/cgi-bin/koha/mainpage.pl`,
             `userid=${encodeURIComponent(kohaUserid)}&password=${encodeURIComponent(password)}`,
             {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 maxRedirects: 0,
+                timeout: 5000, // llamada opcional: no debe bloquear el login
                 validateStatus: function (status) {
                     return status >= 200 && status < 400;
                 }
@@ -393,7 +400,7 @@ async function crearUsuarioDSpace(email, password, nombre, apellido) {
     try {
         // Paso 1: Obtener token CSRF de DSpace
         const statusResponse = await axios.get(
-            'http://172.27.72.64:8090/server/api/authn/status',
+            `${DSPACE_API}/authn/status`,
             {
                 headers: {
                     'Content-Type': 'application/json'
@@ -410,7 +417,7 @@ async function crearUsuarioDSpace(email, password, nombre, apellido) {
 
         // Paso 2: Autenticarnos como admin en DSpace con CSRF token
         const adminLoginResponse = await axios.post(
-            'http://172.27.72.64:8090/server/api/authn/login',
+            `${DSPACE_API}/authn/login`,
             {
                 email: 'admin@biblioteca.local',
                 password: 'admin123'
@@ -431,7 +438,7 @@ async function crearUsuarioDSpace(email, password, nombre, apellido) {
 
         // Crear el usuario usando la API de DSpace
         const createUserResponse = await axios.post(
-            'http://172.27.72.64:8090/server/api/eperson/epersons',
+            `${DSPACE_API}/eperson/epersons`,
             {
                 email: email,
                 password: password,
@@ -531,7 +538,7 @@ async function actualizarPasswordDSpace(email, newPassword) {
     try {
         // Paso 1: Obtener token CSRF de DSpace
         const statusResponse = await axios.get(
-            'http://172.27.72.64:8090/server/api/authn/status',
+            `${DSPACE_API}/authn/status`,
             {
                 headers: {
                     'Content-Type': 'application/json'
@@ -548,7 +555,7 @@ async function actualizarPasswordDSpace(email, newPassword) {
 
         // Paso 2: Autenticarse como admin con CSRF token
         const adminLoginResponse = await axios.post(
-            'http://172.27.72.64:8090/server/api/authn/login',
+            `${DSPACE_API}/authn/login`,
             {
                 email: 'admin@biblioteca.local',
                 password: 'admin123'
@@ -569,7 +576,7 @@ async function actualizarPasswordDSpace(email, newPassword) {
 
         // Buscar el usuario por email
         const searchResponse = await axios.get(
-            `http://172.27.72.64:8090/server/api/eperson/epersons/search/byEmail?email=${encodeURIComponent(email)}`,
+            `${DSPACE_API}/eperson/epersons/search/byEmail?email=${encodeURIComponent(email)}`,
             {
                 headers: {
                     'Authorization': adminToken
@@ -585,7 +592,7 @@ async function actualizarPasswordDSpace(email, newPassword) {
 
         // Actualizar contraseña
         await axios.patch(
-            `http://172.27.72.64:8090/server/api/eperson/epersons/${userId}`,
+            `${DSPACE_API}/eperson/epersons/${userId}`,
             {
                 password: newPassword
             },
@@ -806,10 +813,12 @@ app.post('/api/logout', async (req, res) => {
     // Intentar cerrar sesión en DSpace si hay token
     if (req.session.dspaceToken) {
         try {
-            await axios.post('http://172.27.72.64:8090/server/api/authn/logout', {}, {
+            const dspaceApi = process.env.DSPACE_API_URL || 'http://dspace:8080/server/api';
+            await axios.post(`${dspaceApi}/authn/logout`, {}, {
                 headers: {
                     'Authorization': req.session.dspaceToken
-                }
+                },
+                timeout: 5000
             });
         } catch (error) {
             console.log('Error al cerrar sesión en DSpace:', error.message);

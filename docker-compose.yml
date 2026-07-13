@@ -26,12 +26,13 @@ services:
       # Configuración de red
       proxies__P__trusted__P__ipranges: '172.23.0, 172.27.0'
 
-      # URLs (localhost - configuración local)
-      dspace__P__server__P__url: 'http://172.27.72.64:8090/server'
-      dspace__P__ui__P__url: 'http://172.27.72.64:4000'
+      # URLs (Docker Desktop en Windows - host.docker.internal es visible
+      # desde el navegador y desde los contenedores)
+      dspace__P__server__P__url: 'http://host.docker.internal:8090/server'
+      dspace__P__ui__P__url: 'http://localhost:4000'
 
-      # Permitir peticiones desde localhost (CORS)
-      rest__P__cors__P__allowed__origins: 'http://localhost:4000, http://172.27.72.64:4000'
+      # Permitir peticiones desde localhost (CORS) y la URL pública de ngrok
+      rest__P__cors__P__allowed__origins: 'http://localhost:4000, http://host.docker.internal:4000, http://localhost:8088, http://localhost:3000, https://pouch-earwig-boxy.ngrok-free.dev'
 
       # Configuración de idioma español
       default__P__locale: 'es'
@@ -88,6 +89,22 @@ services:
       - "8983:8983"
     volumes:
       - solr_data:/var/solr/data
+    # Precrear los núcleos que DSpace requiere (search, statistics, oai,
+    # authority) — sin esto el backend truena al arrancar con volumen nuevo
+    entrypoint:
+      - /bin/bash
+      - '-c'
+      - |
+        init-var-solr
+        precreate-core authority /opt/solr/server/solr/configsets/authority
+        cp -r /opt/solr/server/solr/configsets/authority/* /var/solr/data/authority
+        precreate-core oai /opt/solr/server/solr/configsets/oai
+        cp -r /opt/solr/server/solr/configsets/oai/* /var/solr/data/oai
+        precreate-core search /opt/solr/server/solr/configsets/search
+        cp -r /opt/solr/server/solr/configsets/search/* /var/solr/data/search
+        precreate-core statistics /opt/solr/server/solr/configsets/statistics
+        cp -r /opt/solr/server/solr/configsets/statistics/* /var/solr/data/statistics
+        exec solr -f
 
   # DSpace Angular UI
   dspace-angular:
@@ -101,7 +118,7 @@ services:
       DSPACE_UI_PORT: '4000'
       DSPACE_UI_NAMESPACE: '/'
       DSPACE_REST_SSL: 'false'
-      DSPACE_REST_HOST: '172.27.72.64'
+      DSPACE_REST_HOST: 'host.docker.internal'
       DSPACE_REST_PORT: '8090'
       DSPACE_REST_NAMESPACE: '/server'
 
@@ -121,8 +138,8 @@ services:
       - dspacenet
     ports:
       - "4000:4000"
-    # Especificar hosts permitidos en lugar de deshabilitar validación completamente
-    command: sh -c "yarn serve --host 0.0.0.0 --allowed-hosts localhost,172.27.72.64"
+    # El host/puerto se configuran vía variables DSPACE_UI_*; el override de
+    # "yarn serve --allowed-hosts" dejó de ser compatible con la imagen actual.
 
   # === AUTHENTICATION SERVICE ===
 
@@ -145,8 +162,8 @@ services:
       - DB_NAME=biblioteca_auth
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - DSPACE_API_URL=http://172.27.72.64:8090/server/api
-      - KOHA_API_URL=http://172.27.72.64/api
+      - DSPACE_API_URL=http://dspace:8080/server/api
+      - KOHA_API_URL=http://koha:8081/api
       - BASE_URL=http://localhost:8088
     networks:
       - dspacenet
@@ -209,6 +226,44 @@ services:
       - LANGUAGE=es_ES:es
       - LC_ALL=es_ES.UTF-8
 
+  # Koha REAL (paquetes oficiales koha-common, reemplaza al Koha nativo de WSL)
+  koha:
+    container_name: koha
+    build:
+      context: .
+      dockerfile: Dockerfile.koha-docker
+    restart: unless-stopped
+    # Apache de Koha usa mpm-itk (cambia de usuario por petición); el perfil
+    # seccomp default de Docker le bloquea initgroups/setgroups
+    security_opt:
+      - seccomp=unconfined
+    cap_add:
+      - SETUID
+      - SETGID
+    depends_on:
+      - koha-db
+      - koha-memcached
+    environment:
+      DB_HOST: koha-db
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      KOHA_INSTANCE: ${KOHA_INSTANCE}
+      MEMCACHED_SERVERS: koha-memcached:11211
+      TZ: America/Mexico_City
+      LANG: es_ES.UTF-8
+    volumes:
+      - koha_config:/etc/koha
+      - koha_data:/var/lib/koha
+      - koha_logs:/var/log/koha
+    networks:
+      - dspacenet
+    ports:
+      - "8082:8080"   # OPAC (catálogo público)
+      - "8101:8081"   # Staff (administración bibliotecaria)
+
   # Koha API Proxy (Placeholder para futuras integraciones)
   koha-api:
     container_name: koha-api
@@ -251,21 +306,22 @@ services:
       - auth-service
 
   # Proxy Unificado para ngrok (Plan Gratuito)
-  ngrok-proxy:
-    container_name: ngrok-proxy
-    image: nginx:alpine
-    restart: unless-stopped
-    volumes:
-      - ./nginx-proxy-unified.conf:/etc/nginx/nginx.conf:ro
-      - ./admin-panel:/usr/share/nginx/html:ro
-      - /usr/share/koha:/host/usr/share/koha:ro
-    networks:
-      - dspacenet
-    ports:
-      - "9000:80"
-    depends_on:
-      - admin-panel
-      - auth-service
+  # DESACTIVADO temporalmente: dependía de Koha nativo en WSL (/usr/share/koha).
+  # Se reactivará al configurar ngrok con el nuevo Koha dockerizado.
+  # ngrok-proxy:
+  #   container_name: ngrok-proxy
+  #   image: nginx:alpine
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./nginx-proxy-unified.conf:/etc/nginx/nginx.conf:ro
+  #     - ./admin-panel:/usr/share/nginx/html:ro
+  #   networks:
+  #     - dspacenet
+  #   ports:
+  #     - "9000:80"
+  #   depends_on:
+  #     - admin-panel
+  #     - auth-service
 
 volumes:
   pgdata:
@@ -275,3 +331,4 @@ volumes:
   koha_db_data:
   koha_data:
   koha_config:
+  koha_logs:
