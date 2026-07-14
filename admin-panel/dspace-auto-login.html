@@ -248,8 +248,11 @@
     </footer>
 
     <script>
-        // DSpace Angular accesible directamente en su puerto
-        const DSPACE_URL = 'http://' + window.location.hostname + ':4000';
+        // DSpace vive bajo /dspace/ de la URL pública: su API REST está
+        // configurado hacia ese dominio, así que se usa aunque el panel se
+        // abra en localhost (evita el bloqueo del interstitial de ngrok en
+        // las peticiones XHR de origen cruzado)
+        const DSPACE_URL = 'https://pouch-earwig-boxy.ngrok-free.dev/dspace/';
 
         function autoLoginDSpace() {
             const statusMessage = document.getElementById('statusMessage');
@@ -265,18 +268,9 @@
             statusMessage.innerHTML = '<i class="fas fa-user"></i> Usuario: ' + usuario.email;
 
             setTimeout(() => {
-                statusMessage.innerHTML = '<i class="fas fa-arrow-right"></i> Abriendo DSpace en nueva pestaña...';
+                statusMessage.innerHTML = '<i class="fas fa-arrow-right"></i> Redirigiendo a DSpace...';
                 setTimeout(() => {
-                    // Abrir en nueva pestaña y volver al dashboard
-                    const a = document.createElement('a');
-                    a.href = DSPACE_URL;
-                    a.target = '_blank';
-                    a.rel = 'noopener';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 500);
+                    window.location.href = DSPACE_URL;
                 }, 500);
             }, 1000);
         }

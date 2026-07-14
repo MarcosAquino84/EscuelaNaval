@@ -26,10 +26,10 @@ services:
       # Configuración de red
       proxies__P__trusted__P__ipranges: '172.23.0, 172.27.0'
 
-      # URLs (Docker Desktop en Windows - host.docker.internal es visible
-      # desde el navegador y desde los contenedores)
-      dspace__P__server__P__url: 'http://host.docker.internal:8090/server'
-      dspace__P__ui__P__url: 'http://localhost:4000'
+      # URLs públicas (todo pasa por el proxy del panel + ngrok; el REST
+      # también responde en https://<ngrok>/server para navegadores remotos)
+      dspace__P__server__P__url: 'https://pouch-earwig-boxy.ngrok-free.dev/server'
+      dspace__P__ui__P__url: 'https://pouch-earwig-boxy.ngrok-free.dev/dspace'
 
       # Permitir peticiones desde localhost (CORS) y la URL pública de ngrok
       rest__P__cors__P__allowed__origins: 'http://localhost:4000, http://host.docker.internal:4000, http://localhost:8088, http://localhost:3000, https://pouch-earwig-boxy.ngrok-free.dev'
@@ -106,20 +106,21 @@ services:
         cp -r /opt/solr/server/solr/configsets/statistics/* /var/solr/data/statistics
         exec solr -f
 
-  # DSpace Angular UI
+  # DSpace Angular UI (imagen -dist: build de producción, sin el bloqueo
+  # "Invalid Host header" del dev server; accesible vía proxy en /dspace/)
   dspace-angular:
     container_name: dspace-angular
-    image: dspace/dspace-angular:dspace-7_x
+    image: dspace/dspace-angular:dspace-7_x-dist
     depends_on:
       - dspace
     environment:
       DSPACE_UI_SSL: 'false'
       DSPACE_UI_HOST: '0.0.0.0'
       DSPACE_UI_PORT: '4000'
-      DSPACE_UI_NAMESPACE: '/'
-      DSPACE_REST_SSL: 'false'
-      DSPACE_REST_HOST: 'host.docker.internal'
-      DSPACE_REST_PORT: '8090'
+      DSPACE_UI_NAMESPACE: '/dspace'
+      DSPACE_REST_SSL: 'true'
+      DSPACE_REST_HOST: 'pouch-earwig-boxy.ngrok-free.dev'
+      DSPACE_REST_PORT: '443'
       DSPACE_REST_NAMESPACE: '/server'
 
       # Configuración de idioma español
