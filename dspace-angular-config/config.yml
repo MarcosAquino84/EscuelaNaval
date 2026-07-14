@@ -12,10 +12,13 @@ languages:
     label: English
     active: true
 
-# URLs del servidor - usar mismo origen que UI (ngrok)
+# URLs del servidor - el público (ssl/host/port) viene por variables de
+# entorno del compose; ssrBaseUrl hace que el renderizado en servidor
+# consulte el API por la red interna de Docker (universal.replaceRestUrl
+# reescribe los enlaces al dominio público al transferir el estado)
 rest:
-  ssl: false
   nameSpace: /server
+  ssrBaseUrl: http://dspace:8080/server
 
 ui:
   ssl: false
