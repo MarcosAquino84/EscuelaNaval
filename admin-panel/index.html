@@ -490,7 +490,19 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                const data = await response.json();
+                // El servidor puede responder sin JSON (p. ej. proxy caído);
+                // no confundir eso con un error de conexión genérico
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    data = {
+                        success: false,
+                        message: response.status === 429
+                            ? 'Demasiados intentos de login. Espera 15 minutos e intenta de nuevo.'
+                            : `El servidor respondió con un error (HTTP ${response.status}). Intenta de nuevo en un momento.`
+                    };
+                }
                 console.log('Login response:', data);
 
                 if (data.success) {
