@@ -1,0 +1,292 @@
+/*
+ * ================================================
+ * KOHA STAFF - DISEÑO INSTITUCIONAL HENM
+ * Heroica Escuela Naval Militar
+ * ================================================
+ */
+
+:root {
+    /* Paleta institucional mexicana */
+    --primary-color: #9D2449;      /* Guinda institucional */
+    --secondary-color: #2E7D32;    /* Verde institucional */
+    --accent-gold: #D4AF37;        /* Dorado emblemas */
+    --accent-red: #CE1126;         /* Rojo bandera */
+    --text-dark: #333333;          /* Gris oscuro texto */
+    --white: #FFFFFF;              /* Blanco */
+    --bg-light: #F5F5F5;           /* Fondo claro */
+}
+
+/* ================================================
+ * BARRA TRICOLOR SUPERIOR
+ * ================================================ */
+#koha-top-bar {
+    height: 8px;
+    width: 100%;
+    background: linear-gradient(to right,
+        var(--secondary-color) 0%,
+        var(--secondary-color) 33.33%,
+        var(--white) 33.33%,
+        var(--white) 66.66%,
+        var(--accent-red) 66.66%,
+        var(--accent-red) 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ================================================
+ * SUPER HEADER - GOBIERNO DE MÉXICO
+ * ================================================ */
+#koha-super-header {
+    width: 100%;
+    background-color: #691C32;
+    margin-top: 8px;
+    padding: 0;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+#koha-super-header img {
+    height: 60px;
+    width: auto;
+    display: block;
+}
+
+/* ================================================
+ * SUB HEADER - COLEGIO NAVAL
+ * ================================================ */
+#koha-sub-header {
+    width: 100%;
+    background-color: #E8DCC8;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    top: 68px;
+    left: 0;
+    z-index: 9998;
+}
+
+#koha-sub-header img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ================================================
+ * AJUSTAR CONTENIDO PRINCIPAL
+ * ================================================ */
+body {
+    margin-top: 180px !important; /* Espacio para headers fijos */
+    font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* ================================================
+ * NAVBAR ORIGINAL DE KOHA
+ * ================================================ */
+#header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #7A1D3A 100%) !important;
+    border-bottom: 3px solid var(--accent-gold) !important;
+}
+
+.navbar-default {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #7A1D3A 100%) !important;
+    border: none !important;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: var(--white) !important;
+    font-weight: 500;
+}
+
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    background-color: rgba(212, 175, 55, 0.2) !important;
+    color: var(--accent-gold) !important;
+}
+
+.navbar-default .navbar-nav > .active > a {
+    background-color: var(--accent-gold) !important;
+    color: var(--primary-color) !important;
+    font-weight: 600;
+}
+
+/* ================================================
+ * BOTONES Y ELEMENTOS PRINCIPALES
+ * ================================================ */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #7A1D3A 100%) !important;
+    border: 2px solid var(--accent-gold) !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary:hover {
+    background: var(--accent-gold) !important;
+    color: var(--primary-color) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-default {
+    background: var(--white) !important;
+    border: 2px solid var(--secondary-color) !important;
+    color: var(--secondary-color) !important;
+    font-weight: 600;
+}
+
+.btn-default:hover {
+    background: var(--secondary-color) !important;
+    color: var(--white) !important;
+}
+
+/* ================================================
+ * ENLACES Y TÍTULOS
+ * ================================================ */
+a {
+    color: var(--primary-color) !important;
+}
+
+a:hover {
+    color: var(--accent-gold) !important;
+}
+
+h1, h2, h3 {
+    color: var(--primary-color) !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid var(--accent-gold);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* ================================================
+ * TABLAS
+ * ================================================ */
+.table > thead > tr > th {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #1B5E20 100%) !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none !important;
+}
+
+.table > tbody > tr:hover {
+    background-color: rgba(212, 175, 55, 0.1) !important;
+}
+
+/* ================================================
+ * BADGES Y LABELS
+ * ================================================ */
+.badge {
+    background-color: var(--accent-gold) !important;
+    color: var(--primary-color) !important;
+    font-weight: 600;
+}
+
+.label-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.label-success {
+    background-color: var(--secondary-color) !important;
+}
+
+/* ================================================
+ * FOOTER INSTITUCIONAL
+ * ================================================ */
+#koha-footer {
+    width: 100%;
+    background-color: #691C32;
+    padding: 0;
+    margin-top: 60px;
+    position: relative;
+}
+
+#koha-footer img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ================================================
+ * MENSAJES Y ALERTAS
+ * ================================================ */
+.alert-info {
+    background-color: rgba(46, 125, 50, 0.1);
+    border-left: 4px solid var(--secondary-color);
+    color: var(--text-dark);
+}
+
+.alert-warning {
+    background-color: rgba(212, 175, 55, 0.1);
+    border-left: 4px solid var(--accent-gold);
+    color: var(--text-dark);
+}
+
+.alert-danger {
+    background-color: rgba(206, 17, 38, 0.1);
+    border-left: 4px solid var(--accent-red);
+    color: var(--text-dark);
+}
+
+/* ================================================
+ * INPUTS Y FORMS
+ * ================================================ */
+.form-control:focus {
+    border-color: var(--accent-gold) !important;
+    box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25) !important;
+}
+
+/* ================================================
+ * BREADCRUMBS
+ * ================================================ */
+.breadcrumb {
+    background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+    border-left: 4px solid var(--accent-gold);
+}
+
+.breadcrumb > li + li:before {
+    color: var(--primary-color);
+}
+
+/* ================================================
+ * RESPONSIVE
+ * ================================================ */
+@media (max-width: 768px) {
+    #koha-super-header img {
+        height: 45px;
+    }
+
+    body {
+        margin-top: 150px !important;
+    }
+
+    #koha-sub-header {
+        top: 53px;
+    }
+}
+
+/* ================================================
+ * LOADING SPINNER INSTITUCIONAL
+ * ================================================ */
+.loading:after {
+    content: '';
+    border: 4px solid var(--bg-light);
+    border-top: 4px solid var(--accent-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

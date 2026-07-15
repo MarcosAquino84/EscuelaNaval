@@ -25,6 +25,10 @@ RUN wget -q -O /etc/apt/trusted.gpg.d/koha.asc https://debian.koha-community.org
 RUN apt-get update && apt-get install -y koha-common \
     && rm -rf /var/lib/apt/lists/*
 
+# Plantillas en español (persisten en la imagen; instalarlas en el contenedor
+# se pierde al recrearlo)
+RUN koha-translate --install es-ES
+
 # Módulos de Apache que requiere Koha.
 # mpm-itk (cambio de usuario por petición) no funciona dentro de contenedores
 # (los workers pierden CAP_SETUID/SETGID); se deshabilita y Apache corre
@@ -34,6 +38,11 @@ RUN a2enmod rewrite cgi headers proxy_http \
 
 # Puertos internos: 8080 OPAC, 8081 Intranet (Staff)
 RUN sed -i 's/^Listen 80$/Listen 8080\nListen 8081/' /etc/apache2/ports.conf
+
+# Imágenes institucionales (referenciadas por el diseño en OPACUserJS /
+# IntranetUserJS como /SuperHeader.png etc.)
+COPY admin-panel/SuperHeader.png admin-panel/HeaderColegioNaval.png admin-panel/Footer.png /usr/share/koha/opac/htdocs/
+COPY admin-panel/SuperHeader.png admin-panel/HeaderColegioNaval.png admin-panel/Footer.png /usr/share/koha/intranet/htdocs/
 
 COPY koha-docker-entrypoint.sh /usr/local/bin/entrypoint.sh
 # Normalizar fin de línea por si el archivo viene de Windows (CRLF rompe bash)
