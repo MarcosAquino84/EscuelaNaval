@@ -19,6 +19,18 @@
 /* ================================================
  * BARRA TRICOLOR SUPERIOR
  * ================================================ */
+/* Los headers fluyen con la página (no fijos): así nunca tapan el menú
+   de Koha y el scroll los desplaza normalmente.
+   El body del OPAC es display:flex — sin flex-shrink:0 los divs
+   inyectados se comprimen a altura 0. */
+#opac-top-bar,
+#opac-super-header,
+#opac-sub-header,
+#opac-footer {
+    flex-shrink: 0;
+    width: 100%;
+}
+
 #opac-top-bar {
     height: 8px;
     width: 100%;
@@ -29,10 +41,6 @@
         var(--white) 66.66%,
         var(--accent-red) 66.66%,
         var(--accent-red) 100%);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 10000;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -42,13 +50,8 @@
 #opac-super-header {
     width: 100%;
     background-color: #691C32;
-    margin-top: 8px;
     padding: 0;
     overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
 }
 
 #opac-super-header img {
@@ -67,14 +70,12 @@
     overflow: hidden;
     display: flex;
     justify-content: center;
-    position: fixed;
-    top: 68px;
-    left: 0;
-    z-index: 9998;
 }
 
 #opac-sub-header img {
     max-width: 100%;
+    max-height: 140px;
+    width: auto;
     height: auto;
     display: block;
 }
@@ -83,7 +84,6 @@
  * AJUSTAR CONTENIDO PRINCIPAL
  * ================================================ */
 body {
-    margin-top: 180px !important; /* Espacio para headers fijos */
     font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     background-color: var(--bg-light) !important;
 }
@@ -402,14 +402,6 @@ footer#footer {
 @media (max-width: 768px) {
     #opac-super-header img {
         height: 45px;
-    }
-
-    body {
-        margin-top: 150px !important;
-    }
-
-    #opac-sub-header {
-        top: 53px;
     }
 }
 
