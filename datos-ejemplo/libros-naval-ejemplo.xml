@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+
+<!-- 20 registros de ejemplo adicionales - Biblioteca Digital HENM -->
+<!-- Sucursal MAIN, tipos BK/VM, barcodes NAV016-NAV033 y DVD006-DVD007 -->
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2021    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-301-4</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">527</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Salgado Rivera, Ricardo,</subfield><subfield code="c">Capitán de Fragata</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Navegación astronómica :</subfield><subfield code="b">fundamentos y práctica para oficiales de puente /</subfield><subfield code="c">Ricardo Salgado Rivera.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Secretaría de Marina,</subfield><subfield code="c">2021.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">380 p. : il. ; 24 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Manual de navegación por observación de astros: sextante, cronómetro, rectas de altura y cálculo de posición en alta mar.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Navegación astronómica</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">527 SAL</subfield><subfield code="p">NAV016</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2022    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-302-1</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">551.5</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Cárdenas Pineda, Elena</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Meteorología y oceanografía para oficiales navales /</subfield><subfield code="c">Elena Cárdenas Pineda.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Veracruz :</subfield><subfield code="b">Editorial Naval,</subfield><subfield code="c">2022.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">295 p. : il., mapas ; 23 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Interpretación de cartas sinópticas, ciclones tropicales, corrientes y mareas aplicadas a la planeación de derrotas.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Meteorología marítima</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">551.5 CAR</subfield><subfield code="p">NAV017</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2020    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-303-8</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">341.45</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Oropeza Landa, Manuel</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Derecho internacional del mar :</subfield><subfield code="b">la CONVEMAR y su aplicación en México /</subfield><subfield code="c">Manuel Oropeza Landa.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Porrúa,</subfield><subfield code="c">2020.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">512 p. ; 23 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Zonas marítimas, derecho de paso inocente, plataforma continental y jurisdicción del Estado mexicano en sus aguas.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Derecho del mar</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">341.45 ORO</subfield><subfield code="p">NAV018</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2023    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-304-5</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">623.87</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Villaseñor Cruz, Arturo,</subfield><subfield code="c">Ingeniero</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Máquinas y propulsión naval :</subfield><subfield code="b">diésel, turbinas y sistemas eléctricos de a bordo /</subfield><subfield code="c">Arturo Villaseñor Cruz.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Monterrey :</subfield><subfield code="b">Tecnológico Editorial,</subfield><subfield code="c">2023.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">440 p. : diagramas ; 25 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Operación y mantenimiento de plantas propulsoras navales, sistemas auxiliares y control de averías de máquinas.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Ingeniería naval</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">623.87 VIL</subfield><subfield code="p">NAV019</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2019    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-305-2</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">355.33</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Reynoso Ávila, Sofía,</subfield><subfield code="c">General</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Liderazgo y mando militar :</subfield><subfield code="b">principios para la conducción de unidades /</subfield><subfield code="c">Sofía Reynoso Ávila.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">SEDENA,</subfield><subfield code="c">2019.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">268 p. ; 22 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Toma de decisiones bajo presión, disciplina, moral de las tropas y desarrollo del carácter del líder militar.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Liderazgo militar</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">355.33 REY</subfield><subfield code="p">NAV020</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2022    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-306-9</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">359.42</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Fuentes Mora, Diego,</subfield><subfield code="c">Contralmirante</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Táctica naval moderna :</subfield><subfield code="b">operaciones de superficie en el siglo XXI /</subfield><subfield code="c">Diego Fuentes Mora.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">CESNAV,</subfield><subfield code="c">2022.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">352 p. : mapas ; 24 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Formaciones, pantallas de escolta, guerra antisubmarina y coordinación aeronaval en escenarios contemporáneos.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Táctica naval</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">359.42 FUE</subfield><subfield code="p">NAV021</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2023    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-307-6</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">623.73</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Zamudio Ferrer, Patricia</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Comunicaciones navales y guerra electrónica /</subfield><subfield code="c">Patricia Zamudio Ferrer.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Guadalajara :</subfield><subfield code="b">Editorial Delta,</subfield><subfield code="c">2023.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">310 p. : il. ; 24 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Sistemas de radio HF/VHF/UHF, enlaces satelitales, criptografía táctica y contramedidas electrónicas.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Comunicaciones militares</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">623.73 ZAM</subfield><subfield code="p">NAV022</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2021    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-308-3</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">613.69</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Beltrán Ochoa, Raúl</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Supervivencia en el mar :</subfield><subfield code="b">técnicas y equipo para situaciones de emergencia /</subfield><subfield code="c">Raúl Beltrán Ochoa.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Veracruz :</subfield><subfield code="b">Editorial Naval,</subfield><subfield code="c">2021.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">198 p. : il. ; 21 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Abandono de buque, balsas salvavidas, hipotermia, obtención de agua y señalización para rescate.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Supervivencia en el mar</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">613.69 BEL</subfield><subfield code="p">NAV023</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2022    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-309-0</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">616.025</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Navarrete Solís, Gabriela,</subfield><subfield code="c">Doctora</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Primeros auxilios a bordo :</subfield><subfield code="b">medicina de emergencia en unidades de superficie /</subfield><subfield code="c">Gabriela Navarrete Solís.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Manual Moderno,</subfield><subfield code="c">2022.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">240 p. : il. ; 22 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">RCP, control de hemorragias, quemaduras, fracturas y estabilización de pacientes lejos de instalaciones médicas.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Primeros auxilios</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">616.025 NAV</subfield><subfield code="p">NAV024</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2023    mx a          000 0 eng d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-310-6</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">428.02</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Whitfield, James R.</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Maritime English for naval cadets :</subfield><subfield code="b">SMCP and radio communications /</subfield><subfield code="c">James R. Whitfield.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Pearson,</subfield><subfield code="c">2023.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">185 p. ; 26 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Frases normalizadas OMI (SMCP), procedimientos de radio en inglés y vocabulario técnico para guardias de puente.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Inglés técnico</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">428.02 WHI</subfield><subfield code="p">NAV025</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2020    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-311-3</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">623.81</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Quintana Bravo, Héctor</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Construcción naval :</subfield><subfield code="b">principios de arquitectura y estabilidad del buque /</subfield><subfield code="c">Héctor Quintana Bravo.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Limusa,</subfield><subfield code="c">2020.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">395 p. : planos ; 25 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Geometría del casco, curvas hidrostáticas, estabilidad transversal y compartimentado estanco.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Arquitectura naval</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">623.81 QUI</subfield><subfield code="p">NAV026</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2018    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-312-0</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">359.007</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="110" ind1="2" ind2=" "><subfield code="a">Secretaría de Marina. Unidad de Historia y Cultura Naval</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Historia de la Heroica Escuela Naval Militar :</subfield><subfield code="b">forjadora de oficiales 1897-2018 /</subfield><subfield code="c">Unidad de Historia y Cultura Naval.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Antón Lizardo, Veracruz :</subfield><subfield code="b">Secretaría de Marina,</subfield><subfield code="c">2018.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">520 p. : fotografías ; 28 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Crónica ilustrada de la HENM: su fundación, la defensa de Veracruz de 1914 y la formación de generaciones de oficiales.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Heroica Escuela Naval Militar</subfield><subfield code="x">Historia</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">359.007 SEM</subfield><subfield code="p">NAV027</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2021    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-313-7</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">174.9355</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Escamilla Duarte, Verónica</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Ética y doctrina militar :</subfield><subfield code="b">el honor como fundamento del servicio /</subfield><subfield code="c">Verónica Escamilla Duarte.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Fondo de Cultura Económica,</subfield><subfield code="c">2021.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">215 p. ; 21 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Deberes militares, derechos humanos en operaciones, código de conducta y dilemas éticos del mando.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Ética militar</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">174.9355 ESC</subfield><subfield code="p">NAV028</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2022    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-314-4</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">359.8</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Paredes Luna, Óscar,</subfield><subfield code="c">Capitán de Corbeta</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Logística y abastecimiento naval :</subfield><subfield code="b">sostenimiento de operaciones en la mar /</subfield><subfield code="c">Óscar Paredes Luna.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">CESNAV,</subfield><subfield code="c">2022.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">288 p. : tablas ; 23 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Cadena de suministro militar, reabastecimiento en la mar, gestión de almacenes y mantenimiento programado.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Logística naval</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">359.8 PAR</subfield><subfield code="p">NAV029</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2023    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-315-1</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">623.55</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Ibarra Cifuentes, Rodrigo</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Sistemas de armas navales :</subfield><subfield code="b">artillería, misiles y defensa de punto /</subfield><subfield code="c">Rodrigo Ibarra Cifuentes.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">CESNAV,</subfield><subfield code="c">2023.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">330 p. : il. ; 24 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Balística naval, dirección de tiro, sistemas de misiles superficie-superficie y defensa antimisil de punto.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Armamento naval</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">623.55 IBA</subfield><subfield code="p">NAV030</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2021    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-316-8</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">526</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Manríquez Toledo, Alicia</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Cartografía náutica y sistemas de posicionamiento :</subfield><subfield code="b">del papel al ECDIS /</subfield><subfield code="c">Alicia Manríquez Toledo.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">INEGI-SEMAR,</subfield><subfield code="c">2021.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">255 p. : cartas ; 26 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Proyecciones cartográficas, datums, GPS/GNSS, cartas electrónicas ECDIS y su uso en el puente de mando.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Cartografía náutica</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">526 MAN</subfield><subfield code="p">NAV031</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2022    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-317-5</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">363.34</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="110" ind1="2" ind2=" "><subfield code="a">Secretaría de Marina</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Plan Marina :</subfield><subfield code="b">auxilio a la población en casos y zonas de desastre /</subfield><subfield code="c">Secretaría de Marina.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Secretaría de Marina,</subfield><subfield code="c">2022.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">175 p. : il. ; 22 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Doctrina de protección civil de la Armada: fases de prevención, auxilio y recuperación ante desastres naturales.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Protección civil</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">363.34 SEM</subfield><subfield code="p">NAV032</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000nam a2200000 i 4500</leader>
+  <controlfield tag="008">2020    mx a          000 0 spa d</controlfield>
+  <datafield tag="020" ind1=" " ind2=" "><subfield code="a">978-607-466-318-2</subfield></datafield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">627.72</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="100" ind1="1" ind2=" "><subfield code="a">Rosales Vidal, Emilio,</subfield><subfield code="c">Teniente de Navío</subfield></datafield>
+  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">Buceo militar y operaciones subacuáticas /</subfield><subfield code="c">Emilio Rosales Vidal.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Acapulco :</subfield><subfield code="b">Editorial Pacífico,</subfield><subfield code="c">2020.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">225 p. : il. ; 23 cm.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Fisiología del buceo, tablas de descompresión, equipo autónomo y técnicas de búsqueda y recuperación.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Buceo militar</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">BK</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">627.72 ROS</subfield><subfield code="p">NAV033</subfield><subfield code="y">BK</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000ngm a2200000 i 4500</leader>
+  <controlfield tag="008">2014    mx 060            vlspa d</controlfield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">972.0816</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="245" ind1="0" ind2="0"><subfield code="a">Centenario de la gesta heroica de Veracruz 1914</subfield><subfield code="h">[videograbación] /</subfield><subfield code="c">Secretaría de Marina.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">Secretaría de Marina,</subfield><subfield code="c">2014.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">1 DVD (60 min.) : son., col.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Documental conmemorativo de la defensa del puerto de Veracruz por los cadetes de la Escuela Naval en abril de 1914.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Historia de México</subfield><subfield code="y">1914</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">VM</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">972.0816 CEN</subfield><subfield code="p">DVD006</subfield><subfield code="y">VM</subfield></datafield>
+</record>
+
+<record>
+  <leader>00000ngm a2200000 i 4500</leader>
+  <controlfield tag="008">2019    mx 045            vlspa d</controlfield>
+  <datafield tag="040" ind1=" " ind2=" "><subfield code="a">MX-HENM</subfield><subfield code="b">spa</subfield></datafield>
+  <datafield tag="082" ind1="0" ind2="4"><subfield code="a">359.4</subfield><subfield code="2">23</subfield></datafield>
+  <datafield tag="245" ind1="0" ind2="0"><subfield code="a">Maniobras navales multinacionales UNITAS</subfield><subfield code="h">[videograbación] :</subfield><subfield code="b">participación de la Armada de México /</subfield><subfield code="c">CESNAV.</subfield></datafield>
+  <datafield tag="260" ind1=" " ind2=" "><subfield code="a">Ciudad de México :</subfield><subfield code="b">CESNAV,</subfield><subfield code="c">2019.</subfield></datafield>
+  <datafield tag="300" ind1=" " ind2=" "><subfield code="a">1 DVD (45 min.) : son., col.</subfield></datafield>
+  <datafield tag="520" ind1=" " ind2=" "><subfield code="a">Registro audiovisual de ejercicios combinados de unidades de superficie mexicanas con armadas aliadas.</subfield></datafield>
+  <datafield tag="650" ind1=" " ind2="4"><subfield code="a">Ejercicios navales</subfield></datafield>
+  <datafield tag="942" ind1=" " ind2=" "><subfield code="c">VM</subfield></datafield>
+  <datafield tag="952" ind1=" " ind2=" "><subfield code="a">MAIN</subfield><subfield code="b">MAIN</subfield><subfield code="o">359.4 UNI</subfield><subfield code="p">DVD007</subfield><subfield code="y">VM</subfield></datafield>
+</record>
+
+</collection>
