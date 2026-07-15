@@ -71,6 +71,12 @@ const citasRoutes = require('./citas-routes');
 const app = express();
 const PORT = 3000;
 
+// El servicio vive detrás del proxy nginx del panel (y de ngrok): hay que
+// confiar en la red interna de Docker para que Express resuelva la IP real
+// del cliente desde X-Forwarded-For. Sin esto, express-rate-limit lanza
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR y el login truena con 500.
+app.set('trust proxy', ['loopback', '172.16.0.0/12']);
+
 // Configuración de middleware
 // Lista de orígenes permitidos (CORS)
 const allowedOrigins = [
