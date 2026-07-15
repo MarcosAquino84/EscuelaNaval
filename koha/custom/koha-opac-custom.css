@@ -442,6 +442,54 @@ footer#footer {
 }
 
 /* ================================================
+ * CONTRASTE: ENLACES SOBRE FONDOS GUINDA/OSCUROS
+ * (Búsqueda avanzada, autoridades, nube de etiquetas,
+ *  sugerencias: el enlace guinda genérico era invisible
+ *  sobre la barra guinda de #moresearches)
+ * ================================================ */
+#moresearches a,
+#moresearches ul li a,
+#moresearches .nav-link {
+    color: var(--white) !important;
+    font-weight: 600;
+}
+
+#moresearches a:hover,
+#moresearches ul li a:hover,
+#moresearches .nav-link:hover {
+    color: var(--accent-gold) !important;
+    text-decoration: underline;
+}
+
+/* Enlaces dentro de encabezados de facetas (fondo guinda) */
+#facets h4 a {
+    color: var(--white) !important;
+}
+
+/* Barra de navegación superior (fondo verde): asegurar blanco
+   también con el marcado de Bootstrap 5 de Koha 26 */
+.navbar a,
+.navbar .nav-link {
+    color: var(--white) !important;
+}
+
+.navbar a:hover,
+.navbar .nav-link:hover {
+    color: var(--accent-gold) !important;
+}
+
+/* Los menús desplegables caen sobre fondo blanco: texto oscuro */
+.navbar .dropdown-menu a,
+#moresearches .dropdown-menu a {
+    color: var(--text-dark) !important;
+}
+
+.navbar .dropdown-menu a:hover,
+#moresearches .dropdown-menu a:hover {
+    color: var(--primary-color) !important;
+}
+
+/* ================================================
  * LOADING SPINNER INSTITUCIONAL
  * ================================================ */
 .loading:after {

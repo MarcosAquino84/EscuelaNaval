@@ -184,6 +184,39 @@ h1, h2, h3 {
 }
 
 /* ================================================
+ * CONTRASTE: ENCABEZADO GUINDA (menú superior y búsqueda)
+ * Las reglas .navbar-default eran de Bootstrap 3 y Koha 26
+ * usa Bootstrap 5: nunca aplicaban, y el enlace guinda
+ * genérico quedaba invisible sobre el fondo guinda.
+ * ================================================ */
+#header a,
+#header .nav-link,
+#toplevelmenu a,
+.navbar-dark a {
+    color: var(--white) !important;
+    font-weight: 500;
+}
+
+#header a:hover,
+#header .nav-link:hover,
+#toplevelmenu a:hover,
+.navbar-dark a:hover {
+    color: var(--accent-gold) !important;
+}
+
+/* Los menús desplegables del encabezado caen sobre fondo blanco */
+#header .dropdown-menu a,
+.navbar-dark .dropdown-menu a {
+    color: var(--text-dark) !important;
+}
+
+#header .dropdown-menu a:hover,
+.navbar-dark .dropdown-menu a:hover {
+    color: var(--primary-color) !important;
+    background-color: rgba(212, 175, 55, 0.15) !important;
+}
+
+/* ================================================
  * BADGES Y LABELS
  * ================================================ */
 .badge {
