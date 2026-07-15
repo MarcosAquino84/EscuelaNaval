@@ -363,6 +363,7 @@
                         placeholder="usuario@biblioteca.local"
                         required
                         autocomplete="email"
+                        oninput="this.value = this.value.replace(/\s+/g, '')"
                     >
                 </div>
 
@@ -470,7 +471,10 @@
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const email = document.getElementById('email').value;
+            // Limpiar espacios del correo (los copy-paste suelen traerlos y
+            // la validación del navegador bloquea el envío sin avisar)
+            const email = document.getElementById('email').value.replace(/\s+/g, '');
+            document.getElementById('email').value = email;
             const password = document.getElementById('password').value;
 
             setButtonLoading(true);
