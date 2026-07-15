@@ -255,9 +255,14 @@
 
             const kohaUserid = kohaUserMap[usuario.email] || usuario.email.split('@')[0];
 
-            // Koha 24.05+ exige token CSRF en el login: siempre pasamos por el
-            // proxy del panel (/koha/) para poder leerlo desde el mismo origen
+            // Koha 24.05+ exige token CSRF en el login: se obtiene vía el
+            // proxy del panel (/koha/, mismo origen). Pero NAVEGAR Koha por el
+            // proxy rompe rutas y sesión (Koha usa rutas absolutas), así que
+            // en acceso local el formulario se envía al puerto directo del
+            // OPAC: la cookie de sesión se comparte entre puertos del host.
             const opacBaseUrl = window.location.origin + '/koha';
+            const isLocal = /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname) || window.location.hostname === 'localhost';
+            const opacDestino = isLocal ? 'http://' + window.location.hostname + ':8082' : opacBaseUrl;
 
             status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${kohaUserid}`;
 
@@ -280,7 +285,7 @@
                 // 2. Enviar el formulario de login con el token
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = opacBaseUrl + '/cgi-bin/koha/opac-user.pl';
+                form.action = opacDestino + '/cgi-bin/koha/opac-user.pl';
                 form.id = 'autoLoginForm';
 
                 const campos = {
