@@ -467,6 +467,14 @@
             }
         }
 
+        // Si el dashboard nos regresó por falta de sesión, decirlo claramente
+        window.addEventListener('DOMContentLoaded', function() {
+            if (new URLSearchParams(window.location.search).get('motivo') === 'sin-sesion') {
+                showError('No se pudo conservar la sesión en este navegador. ' +
+                    'Evita el modo incógnito o el bloqueo de datos de sitios, y vuelve a iniciar sesión.');
+            }
+        });
+
         // Manejar envío del formulario
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();

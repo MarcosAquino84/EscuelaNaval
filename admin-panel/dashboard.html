@@ -526,7 +526,6 @@
                 clase: 'dspace',
                 btnClass: 'btn-dspace',
                 url: 'dspace-auto-login.html',
-                useAutoLogin: true,
                 type: 'navigate',
                 roles: ['estudiante', 'administrador', 'profesor', 'psicologo']
             },
@@ -537,7 +536,6 @@
                 clase: 'koha',
                 btnClass: 'btn-koha',
                 url: 'koha-opac-auto-login.html',
-                useAutoLogin: true,
                 type: 'navigate',
                 roles: ['estudiante', 'administrador', 'orientador', 'profesor', 'psicologo']
             },
@@ -548,7 +546,6 @@
                 clase: 'koha',
                 btnClass: 'btn-koha',
                 url: 'koha-staff-auto-login.html',
-                useAutoLogin: true,
                 type: 'navigate',
                 roles: ['administrador', 'profesor']
             },
@@ -610,14 +607,37 @@
         };
 
         // Verificar sesión al cargar
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             console.log('Checking session...');
             const usuario = localStorage.getItem('usuario');
             console.log('Usuario in localStorage:', usuario);
 
             if (!usuario) {
-                console.log('No user found, redirecting to login');
-                window.location.href = 'index.html';
+                // localStorage vacío (incógnito, bloqueo de datos, etc.):
+                // intentar reconstruir desde la sesión del servidor antes de rebotar
+                console.log('No user in localStorage, trying server session...');
+                try {
+                    const resp = await fetch(`${AUTH_API}/session`, { credentials: 'include' });
+                    const data = await resp.json();
+                    if (data.autenticado && data.usuario) {
+                        const u = {
+                            ...data.usuario,
+                            nombreCompleto: data.usuario.nombreCompleto ||
+                                `${data.usuario.nombre || ''} ${data.usuario.apellido || ''}`.trim()
+                        };
+                        localStorage.setItem('usuario', JSON.stringify(u));
+                        localStorage.setItem('privilegios', JSON.stringify(data.usuario.privilegios || {}));
+                        localStorage.setItem('sistemas_disponibles', JSON.stringify(data.usuario.privilegios || {}));
+                        console.log('Session rebuilt from server');
+                        cargarDatosUsuario();
+                        cargarSistemasDisponibles();
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Session check failed:', e);
+                }
+                console.log('No session anywhere, redirecting to login');
+                window.location.href = 'index.html?motivo=sin-sesion';
                 return;
             }
 
@@ -692,30 +712,10 @@
             });
         }
 
-        // Acceder a un sistema (Versión 3.0 con auto-login completo)
+        // Acceder a un sistema
         function accederSistema(sistema) {
             const config = sistemasConfig[sistema];
-            const loading = document.getElementById('loadingOverlay');
-            const loadingMessage = document.getElementById('loadingMessage');
-            const loadingSubtext = document.getElementById('loadingSubtext');
-
-            loading.classList.remove('d-none');
-            loadingMessage.textContent = `Accediendo a ${config.nombre}...`;
-
-            if (config.type === 'navigate') {
-                // Navegación directa en la misma ventana
-                loadingSubtext.textContent = 'Cargando módulo de administración...';
-                setTimeout(() => {
-                    window.location.href = config.url;
-                }, 500);
-            } else {
-                // Auto-login en nueva ventana
-                loadingSubtext.textContent = 'Autenticando automáticamente...';
-                setTimeout(() => {
-                    window.open(config.url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-                    loading.classList.add('d-none');
-                }, 500);
-            }
+            window.location.href = config.url;
         }
 
         // Cerrar sesión
