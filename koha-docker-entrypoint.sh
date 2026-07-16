@@ -17,12 +17,16 @@ echo "== Koha dockerizado: instancia '$KOHA_INSTANCE' sobre $DB_USER@$DB_HOST/$D
 
 # El usuario de sistema de la instancia vive en /etc/passwd, que NO persiste
 # entre recreaciones del contenedor (los volúmenes solo cubren /etc/koha y
-# /var/lib/koha). Recrearlo siempre con uid/gid fijos (1000) para que
-# coincida con la propiedad de los archivos en los volúmenes.
+# /var/lib/koha). Si la instancia YA existe, recrearlo con uid/gid fijos
+# (1000) para que coincida con la propiedad de los volúmenes. Si la
+# instancia es nueva, NO pre-crearlo: koha-create insiste en crearlo él
+# mismo y aborta si ya existe.
 KOHA_USER="$KOHA_INSTANCE-koha"
-getent group "$KOHA_USER" >/dev/null || groupadd -g 1000 "$KOHA_USER"
-getent passwd "$KOHA_USER" >/dev/null || useradd -u 1000 -g 1000 -M \
-    -d "/var/lib/koha/$KOHA_INSTANCE" -s /bin/false "$KOHA_USER"
+if [ -f "/etc/koha/sites/$KOHA_INSTANCE/koha-conf.xml" ]; then
+    getent group "$KOHA_USER" >/dev/null || groupadd -g 1000 "$KOHA_USER"
+    getent passwd "$KOHA_USER" >/dev/null || useradd -u 1000 -g 1000 -M \
+        -d "/var/lib/koha/$KOHA_INSTANCE" -s /bin/false "$KOHA_USER"
+fi
 
 echo "Esperando a MariaDB..."
 until mysql -h "$DB_HOST" -P "$DB_PORT" -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1" >/dev/null 2>&1; do
@@ -71,6 +75,10 @@ CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASS';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'%';
 FLUSH PRIVILEGES;
 SQL
+
+    # Limpiar restos de intentos fallidos previos (usuario huérfano)
+    userdel "$KOHA_USER" >/dev/null 2>&1 || true
+    groupdel "$KOHA_USER" >/dev/null 2>&1 || true
 
     # koha-create exige mpm_itk aunque no lo usemos: habilitarlo solo
     # durante la creación y volver a deshabilitarlo (no funciona en
