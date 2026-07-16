@@ -72,7 +72,15 @@ GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'%';
 FLUSH PRIVILEGES;
 SQL
 
+    # koha-create exige mpm_itk aunque no lo usemos: habilitarlo solo
+    # durante la creación y volver a deshabilitarlo (no funciona en
+    # contenedores; Apache corre como el usuario de la instancia)
+    a2enmod mpm_itk >/dev/null 2>&1 || true
     koha-create --use-db "$KOHA_INSTANCE"
+    a2dismod mpm_itk >/dev/null 2>&1 || true
+    # El vhost que genera koha-create trae AssignUserID (de mpm_itk);
+    # se elimina para que el bloque de regeneración lo cree limpio
+    rm -f "/etc/apache2/sites-available/$KOHA_INSTANCE.conf"
     echo "Instancia creada."
 else
     echo "Instancia existente detectada; reutilizando configuración."

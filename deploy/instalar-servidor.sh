@@ -7,6 +7,11 @@
 # ============================================================================
 set -e
 
+# Normalizar archivos que pudieron llegar de Windows (BOM y CRLF rompen bash/compose)
+find /opt/biblioteca/deploy -maxdepth 1 -type f \( -name '*.sh' -o -name 'Caddyfile' -o -name '.env.prod' \) \
+    -exec sed -i -e '1s/^\xEF\xBB\xBF//' -e 's/\r$//' {} \; 2>/dev/null || true
+sed -i -e '1s/^\xEF\xBB\xBF//' -e 's/\r$//' /opt/biblioteca/koha-docker-entrypoint.sh 2>/dev/null || true
+
 echo "== [1/4] Docker =="
 if ! command -v docker >/dev/null 2>&1; then
     curl -fsSL https://get.docker.com | sudo sh
