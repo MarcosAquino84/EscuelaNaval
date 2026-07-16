@@ -31,3 +31,7 @@ Thumbs.db
 # ngrok
 ngrok.log
 ngrok-url.txt
+# Produccion: secretos y respaldos
+deploy/.env.prod
+deploy/backup/
+*.pem

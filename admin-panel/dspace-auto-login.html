@@ -248,11 +248,14 @@
     </footer>
 
     <script>
-        // DSpace vive bajo /dspace/ de la URL pública: su API REST está
-        // configurado hacia ese dominio, así que se usa aunque el panel se
-        // abra en localhost (evita el bloqueo del interstitial de ngrok en
-        // las peticiones XHR de origen cruzado)
-        const DSPACE_URL = 'https://pouch-earwig-boxy.ngrok-free.dev/dspace/';
+        // En producción (subdominios) DSpace vive en repositorio.X; en el
+        // esquema ngrok vive bajo /dspace/ de la URL pública (su API REST
+        // apunta a ese dominio, así que se usa aunque el panel se abra en
+        // localhost — evita el interstitial de ngrok en peticiones XHR)
+        const host = window.location.hostname;
+        const DSPACE_URL = host.startsWith('biblioteca.')
+            ? 'https://repositorio.' + host.slice('biblioteca.'.length) + '/'
+            : 'https://pouch-earwig-boxy.ngrok-free.dev/dspace/';
 
         function autoLoginDSpace() {
             const statusMessage = document.getElementById('statusMessage');

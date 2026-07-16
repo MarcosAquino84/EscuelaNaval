@@ -1,0 +1,29 @@
+# Configuración de DSpace Angular para PRODUCCIÓN (servidor AWS).
+# El host/puerto/ssl públicos vienen por variables de entorno del compose;
+# ssrBaseUrl hace que el renderizado del lado servidor consulte el API por
+# la red interna de Docker (universal.replaceRestUrl reescribe los enlaces
+# al dominio público al transferir el estado al navegador).
+
+defaultLanguage: es
+
+languages:
+  - code: es
+    label: Español
+    active: true
+  - code: en
+    label: English
+    active: true
+
+rest:
+  nameSpace: /server
+  ssrBaseUrl: http://dspace:8080/server
+
+ui:
+  ssl: false
+  host: 0.0.0.0
+  port: 4000
+  nameSpace: /
+
+dspaceName: Biblioteca Digital
+
+timezone: America/Mexico_City

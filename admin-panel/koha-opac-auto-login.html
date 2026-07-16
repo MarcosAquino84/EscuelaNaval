@@ -260,9 +260,24 @@
             // proxy rompe rutas y sesión (Koha usa rutas absolutas), así que
             // en acceso local el formulario se envía al puerto directo del
             // OPAC: la cookie de sesión se comparte entre puertos del host.
-            const opacBaseUrl = window.location.origin + '/koha';
-            const isLocal = /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname) || window.location.hostname === 'localhost';
-            const opacDestino = isLocal ? 'http://' + window.location.hostname + ':8082' : opacBaseUrl;
+            const host = window.location.hostname;
+            const isLocal = /^\d+\.\d+\.\d+\.\d+$/.test(host) || host === 'localhost';
+            let opacBaseUrl, opacDestino;
+            if (isLocal) {
+                // Local: token vía proxy del panel; navegación en el puerto directo
+                opacBaseUrl = window.location.origin + '/koha';
+                opacDestino = 'http://' + host + ':8082';
+            } else if (host.startsWith('biblioteca.')) {
+                // Producción (subdominios): catalogo.X permite leer el token vía
+                // CORS (Caddy) y las cookies viajan por ser el mismo sitio
+                const base = 'https://catalogo.' + host.slice('biblioteca.'.length);
+                opacBaseUrl = base;
+                opacDestino = base;
+            } else {
+                // Fallback (ngrok u otro): todo por el proxy del panel
+                opacBaseUrl = window.location.origin + '/koha';
+                opacDestino = opacBaseUrl;
+            }
 
             status.innerHTML = `<i class="fas fa-user"></i> Usuario: ${kohaUserid}`;
 

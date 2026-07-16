@@ -1,0 +1,40 @@
+# ============================================================================
+# Caddy - proxy frontal con HTTPS automático (Let's Encrypt)
+# Un subdominio por servicio; el certificado se emite y renueva solo.
+# ============================================================================
+
+{
+    email {$ACME_EMAIL}
+}
+
+# Panel de administración (SSO + citas)
+biblioteca.{$DOMAIN} {
+    reverse_proxy admin-panel:80
+}
+
+# Koha OPAC (catálogo público)
+catalogo.{$DOMAIN} {
+    # El auto-login del panel lee el token CSRF desde otro subdominio del
+    # mismo sitio: permitirle leer la respuesta (cookies viajan por ser
+    # same-site; CORS solo hace legible el HTML del token)
+    header Access-Control-Allow-Origin "https://biblioteca.{$DOMAIN}"
+    header Access-Control-Allow-Credentials "true"
+    reverse_proxy koha:8080
+}
+
+# Koha Staff (administración bibliotecaria)
+staff.{$DOMAIN} {
+    header Access-Control-Allow-Origin "https://biblioteca.{$DOMAIN}"
+    header Access-Control-Allow-Credentials "true"
+    reverse_proxy koha:8081
+}
+
+# DSpace (repositorio digital): UI en la raíz, API REST bajo /server
+repositorio.{$DOMAIN} {
+    handle /server/* {
+        reverse_proxy dspace:8080
+    }
+    handle {
+        reverse_proxy dspace-angular:4000
+    }
+}

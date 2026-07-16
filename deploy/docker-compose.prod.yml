@@ -1,0 +1,240 @@
+# ============================================================================
+# BIBLIOTECA DIGITAL HENM - Compose de PRODUCCIÓN (AWS Lightsail)
+# Uso (en el servidor, desde la raíz del proyecto):
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up -d --build
+#
+# Diferencias vs desarrollo:
+#  - Caddy al frente con HTTPS automático (Let's Encrypt) y un subdominio
+#    por servicio: biblioteca.X (panel), catalogo.X (OPAC), staff.X (Koha
+#    staff), repositorio.X (DSpace).
+#  - NINGÚN puerto publicado al exterior salvo 80/443 de Caddy (las bases
+#    de datos quedan solo en la red interna de Docker).
+#  - URLs públicas tomadas de ${DOMAIN} en deploy/.env.prod.
+# ============================================================================
+
+networks:
+  dspacenet:
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+
+services:
+  # === PROXY FRONTAL CON HTTPS AUTOMÁTICO ===
+  caddy:
+    container_name: caddy
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - dspacenet
+    depends_on:
+      - admin-panel
+      - koha
+      - dspace-angular
+
+  # === DSPACE ===
+  dspace:
+    container_name: dspace
+    image: dspace/dspace:dspace-7_x
+    restart: unless-stopped
+    environment:
+      dspace__P__dir: /dspace
+      dspace__P__name: 'Biblioteca Digital'
+      db__P__url: 'jdbc:postgresql://dspacedb:5432/dspace'
+      db__P__username: '${POSTGRES_USER}'
+      db__P__password: '${POSTGRES_PASSWORD}'
+      solr__P__server: 'http://dspacesolr:8983/solr'
+      proxies__P__trusted__P__ipranges: '172.23.0'
+      dspace__P__server__P__url: 'https://repositorio.${DOMAIN}/server'
+      dspace__P__ui__P__url: 'https://repositorio.${DOMAIN}'
+      rest__P__cors__P__allowed__origins: 'https://repositorio.${DOMAIN}, https://biblioteca.${DOMAIN}'
+      default__P__locale: 'es'
+      webui__P__supported__P__locales: 'es'
+      LANG: 'es_ES.UTF-8'
+      LOGGING_CONFIG: '/dspace/config/log4j2-container.xml'
+      mail__P__server__P__disabled: 'true'
+      JAVA_OPTS: '-Xmx2048m -Xms1024m -Duser.language=es'
+    depends_on:
+      - dspacedb
+      - dspacesolr
+    networks:
+      - dspacenet
+    volumes:
+      - dspace_data:/dspace/assetstore
+      - dspace_solr_data:/dspace/solr
+
+  dspacedb:
+    container_name: dspacedb
+    image: dspace/dspace-postgres-pgcrypto:dspace-7_x
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /pgdata
+    networks:
+      - dspacenet
+    volumes:
+      - pgdata:/pgdata
+
+  dspacesolr:
+    container_name: dspacesolr
+    image: dspace/dspace-solr:dspace-7_x
+    restart: unless-stopped
+    networks:
+      - dspacenet
+    volumes:
+      - solr_data:/var/solr/data
+    entrypoint:
+      - /bin/bash
+      - '-c'
+      - |
+        init-var-solr
+        precreate-core authority /opt/solr/server/solr/configsets/authority
+        cp -r /opt/solr/server/solr/configsets/authority/* /var/solr/data/authority
+        precreate-core oai /opt/solr/server/solr/configsets/oai
+        cp -r /opt/solr/server/solr/configsets/oai/* /var/solr/data/oai
+        precreate-core search /opt/solr/server/solr/configsets/search
+        cp -r /opt/solr/server/solr/configsets/search/* /var/solr/data/search
+        precreate-core statistics /opt/solr/server/solr/configsets/statistics
+        cp -r /opt/solr/server/solr/configsets/statistics/* /var/solr/data/statistics
+        exec solr -f
+
+  dspace-angular:
+    container_name: dspace-angular
+    image: dspace/dspace-angular:dspace-7_x-dist
+    restart: unless-stopped
+    depends_on:
+      - dspace
+    environment:
+      DSPACE_UI_SSL: 'false'
+      DSPACE_UI_HOST: '0.0.0.0'
+      DSPACE_UI_PORT: '4000'
+      DSPACE_UI_NAMESPACE: '/'
+      DSPACE_REST_SSL: 'true'
+      DSPACE_REST_HOST: 'repositorio.${DOMAIN}'
+      DSPACE_REST_PORT: '443'
+      DSPACE_REST_NAMESPACE: '/server'
+      LANG: 'es_ES.UTF-8'
+      DEFAULT_LANGUAGE: 'es'
+    volumes:
+      - ../dspace-angular-config/config.prod-server.yml:/app/config/config.yml:ro
+    networks:
+      - dspacenet
+
+  # === AUTENTICACIÓN Y PANEL ===
+  auth-service:
+    container_name: auth-service
+    build:
+      context: ../auth-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - dspacedb
+      - koha-db
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SESSION_SECRET=${SESSION_SECRET}
+      - DB_HOST=dspacedb
+      - DB_PORT=5432
+      - DB_NAME=biblioteca_auth
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DSPACE_API_URL=http://dspace:8080/server/api
+      - KOHA_API_URL=http://koha:8081/api
+      - KOHA_STAFF_URL=http://koha:8081
+      - BASE_URL=https://biblioteca.${DOMAIN}
+      - PUBLIC_URL=https://biblioteca.${DOMAIN}
+    networks:
+      - dspacenet
+
+  admin-panel:
+    container_name: admin-panel
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ../admin-panel:/usr/share/nginx/html:ro
+      - ../nginx-admin-panel.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - dspacenet
+    depends_on:
+      - auth-service
+
+  # === KOHA ===
+  koha-db:
+    container_name: koha-mariadb
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - koha_db_data:/var/lib/mysql
+      - ../koha/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - dspacenet
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  koha-memcached:
+    container_name: koha-memcached
+    image: memcached:alpine
+    restart: unless-stopped
+    command: memcached -m 128
+    networks:
+      - dspacenet
+
+  koha:
+    container_name: koha
+    build:
+      context: ..
+      dockerfile: Dockerfile.koha-docker
+    restart: unless-stopped
+    security_opt:
+      - seccomp=unconfined
+    cap_add:
+      - SETUID
+      - SETGID
+    depends_on:
+      - koha-db
+      - koha-memcached
+    environment:
+      DB_HOST: koha-db
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      KOHA_INSTANCE: ${KOHA_INSTANCE}
+      MEMCACHED_SERVERS: koha-memcached:11211
+      TZ: America/Mexico_City
+      LANG: es_ES.UTF-8
+    volumes:
+      - koha_config:/etc/koha
+      - koha_data:/var/lib/koha
+      - koha_logs:/var/log/koha
+    networks:
+      - dspacenet
+
+volumes:
+  pgdata:
+  solr_data:
+  dspace_data:
+  dspace_solr_data:
+  koha_db_data:
+  koha_data:
+  koha_config:
+  koha_logs:
+  caddy_data:
+  caddy_config:
