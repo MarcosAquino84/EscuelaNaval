@@ -397,97 +397,101 @@ async function autenticarKoha(userid, password) {
 // ============================================================================
 
 /**
+ * Sesión de administrador contra el API de DSpace, con manejo correcto de
+ * la rotación del token CSRF (DSpace 7 lo cambia en el login y puede
+ * rotarlo en cualquier respuesta; el header X-XSRF-TOKEN debe coincidir
+ * siempre con la cookie DSPACE-XSRF-COOKIE vigente).
+ */
+async function sesionAdminDSpace() {
+    const s = { csrf: null, cookie: '', bearer: null };
+
+    s.refrescar = (headers) => {
+        if (!headers) return;
+        if (headers['dspace-xsrf-token']) s.csrf = headers['dspace-xsrf-token'];
+        const sc = (headers['set-cookie'] || []).map(c => c.split(';')[0]);
+        if (sc.length) {
+            const mapa = Object.fromEntries(s.cookie.split('; ').filter(Boolean).map(p => p.split('=')));
+            // Un Set-Cookie con valor vacío es un BORRADO (DSpace limpia la
+            // cookie XSRF en el login): no debe pisar el token vigente
+            for (const c of sc) {
+                const [k, v] = c.split('=');
+                if (v) mapa[k] = v; else delete mapa[k];
+            }
+            s.cookie = Object.entries(mapa).map(([k, v]) => `${k}=${v}`).join('; ');
+            const xsrf = sc.find(c => c.startsWith('DSPACE-XSRF-COOKIE='));
+            const val = xsrf ? xsrf.split('=')[1] : '';
+            if (val) s.csrf = val;
+        }
+    };
+
+    s.headers = () => {
+        // DSpace valida que el header X-XSRF-TOKEN coincida con la cookie:
+        // garantizar que la cookie lleve siempre el token vigente
+        const mapa = Object.fromEntries(s.cookie.split('; ').filter(Boolean).map(p => p.split('=')));
+        if (s.csrf) mapa['DSPACE-XSRF-COOKIE'] = s.csrf;
+        return {
+            'Authorization': s.bearer,
+            'X-XSRF-TOKEN': s.csrf,
+            'Cookie': Object.entries(mapa).map(([k, v]) => `${k}=${v}`).join('; '),
+            'Content-Type': 'application/json'
+        };
+    };
+
+    const status = await axios.get(`${DSPACE_API}/authn/status`, { timeout: 8000 });
+    s.refrescar(status.headers);
+
+    // El login espera parámetros de formulario (user/password), no JSON
+    const login = await axios.post(`${DSPACE_API}/authn/login`,
+        new URLSearchParams({
+            user: process.env.DSPACE_ADMIN_EMAIL || 'admin@biblioteca.local',
+            password: process.env.DSPACE_ADMIN_PASSWORD || 'admin123'
+        }),
+        { headers: { 'X-XSRF-TOKEN': s.csrf, 'Cookie': s.cookie }, timeout: 8000 });
+
+    s.bearer = login.headers['authorization'];
+    s.refrescar(login.headers);
+    if (!s.bearer) throw new Error('No se pudo autenticar como admin en DSpace');
+    return s;
+}
+
+/**
  * Crear usuario en DSpace mediante API REST
- * @param {string} email - Email del usuario
- * @param {string} password - Contraseña del usuario
- * @param {string} nombre - Nombre del usuario
- * @param {string} apellido - Apellido del usuario
  * @returns {Promise<{success: boolean, userId?: string, error?: string}>}
  */
 async function crearUsuarioDSpace(email, password, nombre, apellido) {
     try {
-        // Paso 1: Obtener token CSRF de DSpace
-        const statusResponse = await axios.get(
-            `${DSPACE_API}/authn/status`,
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+        const s = await sesionAdminDSpace();
+        const cuerpo = {
+            email: email,
+            password: password,
+            canLogIn: true,
+            requireCertificate: false,
+            metadata: {
+                'eperson.firstname': [{ value: nombre }],
+                'eperson.lastname': [{ value: apellido }]
             }
-        );
-
-        const csrfToken = statusResponse.headers['dspace-xsrf-token'];
-        const cookies = statusResponse.headers['set-cookie'];
-
-        if (!csrfToken) {
-            throw new Error('No se pudo obtener token CSRF de DSpace');
-        }
-
-        // Paso 2: Autenticarnos como admin en DSpace con CSRF token
-        const adminLoginResponse = await axios.post(
-            `${DSPACE_API}/authn/login`,
-            {
-                email: 'admin@biblioteca.local',
-                password: 'admin123'
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': csrfToken,
-                    'Cookie': cookies ? cookies.join('; ') : ''
-                }
-            }
-        );
-
-        const adminToken = adminLoginResponse.headers['authorization'];
-        if (!adminToken) {
-            throw new Error('No se pudo obtener token de administrador de DSpace');
-        }
-
-        // Crear el usuario usando la API de DSpace
-        const createUserResponse = await axios.post(
-            `${DSPACE_API}/eperson/epersons`,
-            {
-                email: email,
-                password: password,
-                name: `${nombre} ${apellido}`,
-                metadata: {
-                    'eperson.firstname': [{ value: nombre }],
-                    'eperson.lastname': [{ value: apellido }]
-                },
-                canLogIn: true,
-                requireCertificate: false
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': adminToken
-                }
-            }
-        );
-
-        const userId = createUserResponse.data?.id || createUserResponse.data?.uuid;
-
-        console.log(`✅ Usuario creado en DSpace: ${email} (ID: ${userId})`);
-
-        return {
-            success: true,
-            userId: userId
         };
 
+        // Reintentar una vez si el token CSRF rotó (403)
+        for (let intento = 1; intento <= 2; intento++) {
+            try {
+                const r = await axios.post(`${DSPACE_API}/eperson/epersons`, cuerpo,
+                    { headers: s.headers(), timeout: 8000 });
+                const userId = r.data?.id || r.data?.uuid;
+                console.log(`✅ Usuario creado en DSpace: ${email} (ID: ${userId})`);
+                return { success: true, userId };
+            } catch (e) {
+                s.refrescar(e.response?.headers);
+                if (e.response?.status === 422 || e.response?.status === 409) {
+                    console.log(`⚠️ Usuario ya existe en DSpace: ${email}`);
+                    return { success: true, userId: null };
+                }
+                if (!(e.response?.status === 403 && intento === 1)) throw e;
+            }
+        }
     } catch (error) {
         console.error(`❌ Error al crear usuario en DSpace (${email}):`, error.message);
-
-        // Si el error es que ya existe el usuario, considerarlo éxito
-        if (error.response?.status === 422 || error.response?.status === 409) {
-            console.log(`⚠️ Usuario ya existe en DSpace: ${email}`);
-            return { success: true, userId: null };
-        }
-
-        return {
-            success: false,
-            error: error.message
-        };
+        return { success: false, error: error.message };
     }
 }
 
@@ -544,53 +548,14 @@ async function crearUsuarioKoha(email, password, nombre, apellido, isStaff = fal
  */
 async function actualizarPasswordDSpace(email, newPassword) {
     try {
-        // Paso 1: Obtener token CSRF de DSpace
-        const statusResponse = await axios.get(
-            `${DSPACE_API}/authn/status`,
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        const csrfToken = statusResponse.headers['dspace-xsrf-token'];
-        const cookies = statusResponse.headers['set-cookie'];
-
-        if (!csrfToken) {
-            throw new Error('No se pudo obtener token CSRF de DSpace');
-        }
-
-        // Paso 2: Autenticarse como admin con CSRF token
-        const adminLoginResponse = await axios.post(
-            `${DSPACE_API}/authn/login`,
-            {
-                email: 'admin@biblioteca.local',
-                password: 'admin123'
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': csrfToken,
-                    'Cookie': cookies ? cookies.join('; ') : ''
-                }
-            }
-        );
-
-        const adminToken = adminLoginResponse.headers['authorization'];
-        if (!adminToken) {
-            throw new Error('No se pudo obtener token de administrador');
-        }
+        const s = await sesionAdminDSpace();
 
         // Buscar el usuario por email
         const searchResponse = await axios.get(
             `${DSPACE_API}/eperson/epersons/search/byEmail?email=${encodeURIComponent(email)}`,
-            {
-                headers: {
-                    'Authorization': adminToken
-                }
-            }
+            { headers: s.headers(), timeout: 8000 }
         );
+        s.refrescar(searchResponse.headers);
 
         const userId = searchResponse.data?.id || searchResponse.data?.uuid;
         if (!userId) {
@@ -598,22 +563,19 @@ async function actualizarPasswordDSpace(email, newPassword) {
             return { success: false, error: 'Usuario no encontrado' };
         }
 
-        // Actualizar contraseña
-        await axios.patch(
-            `${DSPACE_API}/eperson/epersons/${userId}`,
-            {
-                password: newPassword
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': adminToken
-                }
+        // Actualizar contraseña (JSON Patch; reintenta una vez si el CSRF rotó)
+        const patch = [{ op: 'add', path: '/password', value: { new_password: newPassword } }];
+        for (let intento = 1; intento <= 2; intento++) {
+            try {
+                await axios.patch(`${DSPACE_API}/eperson/epersons/${userId}`, patch,
+                    { headers: s.headers(), timeout: 8000 });
+                console.log(`✅ Contraseña actualizada en DSpace: ${email}`);
+                return { success: true };
+            } catch (e) {
+                s.refrescar(e.response?.headers);
+                if (!(e.response?.status === 403 && intento === 1)) throw e;
             }
-        );
-
-        console.log(`✅ Contraseña actualizada en DSpace: ${email}`);
-        return { success: true };
+        }
 
     } catch (error) {
         console.error(`❌ Error al actualizar contraseña en DSpace (${email}):`, error.message);
