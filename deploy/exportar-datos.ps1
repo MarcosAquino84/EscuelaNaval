@@ -10,14 +10,22 @@ $ErrorActionPreference = 'Stop'
 $backup = Join-Path $PSScriptRoot 'backup'
 New-Item -ItemType Directory -Force $backup | Out-Null
 
+# Los dumps se generan DENTRO del contenedor y se extraen con docker cp:
+# el pipeline de PowerShell re-codifica el texto y corrompe acentos/ñ.
+
 Write-Host "[1/4] PostgreSQL: biblioteca_auth (usuarios, citas)..." -ForegroundColor Cyan
-docker exec dspacedb pg_dump -U dspace -d biblioteca_auth --clean --if-exists | Out-File "$backup\biblioteca_auth.sql" -Encoding utf8
+docker exec dspacedb sh -c 'pg_dump -U dspace -d biblioteca_auth --clean --if-exists > /tmp/ba.sql'
+docker cp dspacedb:/tmp/ba.sql "$backup\biblioteca_auth.sql"
 
 Write-Host "[2/4] PostgreSQL: dspace (repositorio)..." -ForegroundColor Cyan
-docker exec dspacedb pg_dump -U dspace -d dspace --clean --if-exists | Out-File "$backup\dspace.sql" -Encoding utf8
+docker exec dspacedb sh -c 'pg_dump -U dspace -d dspace --clean --if-exists > /tmp/ds.sql'
+docker cp dspacedb:/tmp/ds.sql "$backup\dspace.sql"
+docker exec dspacedb rm -f /tmp/ba.sql /tmp/ds.sql
 
 Write-Host "[3/4] MariaDB: koha_biblioteca (catalogo, ejemplares, usuarios Koha)..." -ForegroundColor Cyan
-docker exec koha-mariadb sh -c 'mariadb-dump -u root -p"$MYSQL_ROOT_PASSWORD" --databases koha_biblioteca' | Out-File "$backup\koha.sql" -Encoding utf8
+docker exec koha-mariadb sh -c 'mariadb-dump -u root -p"$MYSQL_ROOT_PASSWORD" --databases koha_biblioteca > /tmp/koha.sql'
+docker cp koha-mariadb:/tmp/koha.sql "$backup\koha.sql"
+docker exec koha-mariadb rm -f /tmp/koha.sql
 
 Write-Host "[4/4] DSpace assetstore (archivos subidos)..." -ForegroundColor Cyan
 docker exec dspace tar czf /tmp/assetstore.tar.gz -C /dspace assetstore
