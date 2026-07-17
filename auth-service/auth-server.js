@@ -504,34 +504,68 @@ async function crearUsuarioDSpace(email, password, nombre, apellido) {
  * @param {boolean} isStaff - Si el usuario tiene privilegios staff
  * @returns {Promise<{success: boolean, borrowernumber?: number, error?: string}>}
  */
-async function crearUsuarioKoha(email, password, nombre, apellido, isStaff = false) {
+async function crearUsuarioKoha(email, password, nombre, apellido, isStaff = false, tipo = 'estudiante') {
     try {
-        // Generar userid único (primera letra nombre + apellido)
-        const userid = (nombre.charAt(0) + apellido).toLowerCase().replace(/\s/g, '');
-
-        // Generar cardnumber único basado en timestamp
-        const cardnumber = `USR${Date.now().toString().slice(-8)}`;
-
-        // NOTA: Koha API REST no está disponible, se requiere sincronización manual
-        // Los usuarios deben crearse manualmente en Koha usando el script:
-        // /home/marcos/EscuelaNaval/koha-create-user.sh
-
-        console.log(`⚠️ Koha: Sincronización manual requerida para ${email}`);
-        console.log(`   Ejecutar: /home/marcos/EscuelaNaval/koha-create-user.sh "${email}" "${password}" "${nombre}" "${apellido}" "${isStaff}"`);
-
-        // Retornar éxito parcial - el usuario debe crearse manualmente
-        return {
-            success: false,
-            requiresManualSync: true,
-            userid: userid,
-            cardnumber: cardnumber,
-            categorycode: isStaff ? 'ST' : 'PT',
-            script: `/home/marcos/EscuelaNaval/koha-create-user.sh "${email}" "PASSWORD_HIDDEN" "${nombre}" "${apellido}" "${isStaff}"`,
-            error: 'Koha API no disponible - requiere sincronización manual'
+        const KOHA_REST = (process.env.KOHA_STAFF_URL || 'http://koha:8081') + '/api/v1';
+        const kohaAuth = {
+            username: process.env.KOHA_ADMIN_USER || 'admin',
+            password: process.env.KOHA_ADMIN_PASSWORD || 'admin123'
         };
 
+        // userid = parte local del email: es la convención que usa el
+        // auto-login del panel cuando el correo no está en el mapa
+        const userid = email.split('@')[0];
+        const cardnumber = `USR${Date.now().toString().slice(-8)}`;
+        // Categoría de Koha según el rol: administrador/staff => S(taff),
+        // orientador/asesor => T(eacher), estudiante => ST(udent)
+        const categoria = isStaff ? 'S' : (tipo === 'orientador' ? 'T' : 'ST');
+
+        // ¿Ya existe? (idempotencia)
+        const existente = await axios.get(
+            `${KOHA_REST}/patrons?userid=${encodeURIComponent(userid)}`,
+            { auth: kohaAuth, timeout: 8000 });
+        let patronId = Array.isArray(existente.data) ? existente.data[0]?.patron_id : null;
+
+        if (!patronId) {
+            const alta = await axios.post(`${KOHA_REST}/patrons`, {
+                userid: userid,
+                cardnumber: cardnumber,
+                surname: apellido,
+                firstname: nombre,
+                email: email,
+                library_id: 'MAIN',
+                category_id: categoria
+            }, { auth: kohaAuth, timeout: 8000 });
+            patronId = alta.data.patron_id;
+            console.log(`✅ Usuario creado en Koha: ${email} (patron ${patronId}, ${categoria})`);
+        } else {
+            console.log(`⚠️ Usuario ya existía en Koha: ${email} (patron ${patronId})`);
+        }
+
+        // Misma contraseña que el panel, para que funcione el auto-login.
+        // El endpoint es POST; reintentar ante 404 (el patrón recién creado
+        // puede no estar disponible en el instante siguiente).
+        for (let intento = 1; intento <= 3; intento++) {
+            try {
+                await axios.post(`${KOHA_REST}/patrons/${patronId}/password`, {
+                    password: password,
+                    password_2: password
+                }, { auth: kohaAuth, timeout: 8000 });
+                break;
+            } catch (e) {
+                if (e.response?.status === 404 && intento < 3) {
+                    await new Promise(r => setTimeout(r, 400));
+                    continue;
+                }
+                throw e;
+            }
+        }
+
+        return { success: true, borrowernumber: patronId, userid: userid };
+
     } catch (error) {
-        console.error(`❌ Error al crear usuario en Koha (${email}):`, error.message);
+        const detalle = JSON.stringify(error.response?.data || '').substring(0, 150);
+        console.error(`❌ Error al crear usuario en Koha (${email}):`, error.message, detalle);
 
         return {
             success: false,
@@ -594,19 +628,28 @@ async function actualizarPasswordDSpace(email, newPassword) {
  */
 async function actualizarPasswordKoha(email, newPassword) {
     try {
-        // NOTA: Koha API REST no está disponible, se requiere actualización manual
-        // La contraseña debe actualizarse manualmente en Koha usando el script:
-        // /home/marcos/EscuelaNaval/koha-update-password.sh
-
-        console.log(`⚠️ Koha: Actualización manual de contraseña requerida para ${email}`);
-        console.log(`   Ejecutar: /home/marcos/EscuelaNaval/koha-update-password.sh "${email}" "NEW_PASSWORD"`);
-
-        return {
-            success: false,
-            requiresManualSync: true,
-            script: `/home/marcos/EscuelaNaval/koha-update-password.sh "${email}" "PASSWORD_HIDDEN"`,
-            error: 'Koha API no disponible - requiere actualización manual'
+        const KOHA_REST = (process.env.KOHA_STAFF_URL || 'http://koha:8081') + '/api/v1';
+        const kohaAuth = {
+            username: process.env.KOHA_ADMIN_USER || 'admin',
+            password: process.env.KOHA_ADMIN_PASSWORD || 'admin123'
         };
+
+        const r = await axios.get(
+            `${KOHA_REST}/patrons?email=${encodeURIComponent(email)}`,
+            { auth: kohaAuth, timeout: 8000 });
+        const patronId = Array.isArray(r.data) ? r.data[0]?.patron_id : null;
+        if (!patronId) {
+            console.log(`⚠️ Usuario no encontrado en Koha: ${email}`);
+            return { success: false, error: 'Usuario no encontrado en Koha' };
+        }
+
+        await axios.post(`${KOHA_REST}/patrons/${patronId}/password`, {
+            password: newPassword,
+            password_2: newPassword
+        }, { auth: kohaAuth, timeout: 8000 });
+
+        console.log(`✅ Contraseña actualizada en Koha: ${email}`);
+        return { success: true };
 
     } catch (error) {
         console.error(`❌ Error al actualizar contraseña en Koha (${email}):`, error.message);
@@ -1056,7 +1099,7 @@ app.post('/api/usuarios', verificarAutenticacion, verificarAdmin, async (req, re
         if (privs.koha_staff || privs.koha_opac) {
             console.log(`   → Creando usuario en Koha...`);
             sincronizacionResultados.koha.intentado = true;
-            const kohaResult = await crearUsuarioKoha(email, password, nombre, apellido, privs.koha_staff);
+            const kohaResult = await crearUsuarioKoha(email, password, nombre, apellido, privs.koha_staff, tipo);
             sincronizacionResultados.koha.exitoso = kohaResult.success;
         }
 
